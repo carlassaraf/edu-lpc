@@ -26,8 +26,8 @@
 | 6 | PIO0_21 | GPIO |  |
 | 7 | PIO0_22 | GPIO |  |
 | 8 | PIO0_23 | GPIO |  |
-| 10 | PIO0_24 | RXD0 | RXD0 |
-| 11 | PIO0_25 | TXD0 | TXD0 |
+| 10 | PIO0_24 | ESP TXD0 | RXD0 |
+| 11 | PIO0_25 | ESP RXD0 | TXD0 |
 | 12 | PIO0_26 | GPIO |  |
 | 13 | PIO0_27 | GPIO |  |
 | 14 | PIO0_28 | GPIO |  |
