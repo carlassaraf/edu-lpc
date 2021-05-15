@@ -10,13 +10,13 @@
 | 9/34 | PIO0_05 |  | RESET |
 |33 | PIO0_06 | ADC1 | |
 | 32 | PIO0_07 |  | ADC0/POT |
-| 19/21 | PIO0_08 | GPIO |  |
-| 18/22 | PIO0_09 | GPIO |  |
+| 19/21 | PIO0_08 | BTN 1 |  |
+| 18/22 | PIO0_09 | BTN 2 |  |
 | 23 | PIO0_10 | SCL |  |
 | 24 | PIO0_11 | SDA |  |
 | 25 | PIO0_12 | GPIO | ISP |
-| 26 | PIO0_13 | ADC_10 |  |
-| 27 | PIO0_14 | ADC_2 |  |
+| 26 | PIO0_13 | BTN 3 |  |
+| 27 | PIO0_14 | Relay |  |
 | 28 | PIO0_15 | GPIO |  |
 | 1 | PIO0_16 | GPIO |  |
 | 2 | PIO0_17 | DACOUT_0 |  |
