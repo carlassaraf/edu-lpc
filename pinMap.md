@@ -28,10 +28,10 @@
 | 8 | PIO0_23 | GPIO |  |
 | 10 | PIO0_24 | ESP TXD0 | RXD0 |
 | 11 | PIO0_25 | ESP RXD0 | TXD0 |
-| 12 | PIO0_26 | GPIO |  |
-| 13 | PIO0_27 | GPIO |  |
-| 14 | PIO0_28 | GPIO |  |
-| 15 | PIO0_29 | DCOUT_1 |  |
+| 12 | PIO0_26 | SD DO |  |
+| 13 | PIO0_27 | SD DI |  |
+| 14 | PIO0_28 | SD SCK |  |
+| 15 | PIO0_29 | SD CS |  |
 | 16 | PIO0_30 | RXD1 |  |
 | 17 | PIO0_31 | TXD1 |  |
 | 31 | PIO1_00 |  | GREEN LED |
