@@ -14,18 +14,18 @@
 | 18/22 | PIO0_09 | BTN 2 |  |
 | 23 | PIO0_10 | SCL |  |
 | 24 | PIO0_11 | SDA |  |
-| 25 | PIO0_12 | GPIO | ISP |
+| 25 | PIO0_12 | | ISP |
 | 26 | PIO0_13 | BTN 3 |  |
 | 27 | PIO0_14 | Relay |  |
-| 28 | PIO0_15 | GPIO |  |
-| 1 | PIO0_16 | GPIO |  |
+| 28 | PIO0_15 | GPIO0 |  |
+| 1 | PIO0_16 | GPIO1 |  |
 | 2 | PIO0_17 | DACOUT_0 |  |
-| 3 | PIO0_18 | GPIO |  |
-| 4 | PIO0_19 | GPIO |  |
-| 5 | PIO0_20 | GPIO |  |
-| 6 | PIO0_21 | GPIO |  |
-| 7 | PIO0_22 | GPIO |  |
-| 8 | PIO0_23 | GPIO |  |
+| 3 | PIO0_18 | GPIO2 |  |
+| 4 | PIO0_19 | GPIO3 |  |
+| 5 | PIO0_20 | GPIO4 |  |
+| 6 | PIO0_21 | GPIO5 |  |
+| 7 | PIO0_22 | GPIO6 |  |
+| 8 | PIO0_23 | GPIO7 |  |
 | 10 | PIO0_24 | ESP TXD0 | RXD0 |
 | 11 | PIO0_25 | ESP RXD0 | TXD0 |
 | 12 | PIO0_26 | SD DO |  |
