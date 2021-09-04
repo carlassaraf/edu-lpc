@@ -24,8 +24,6 @@ static const gpio_pin_config_t configInput = {
 		0,
 };
 
-#define IOCON_INDEX(port, pin)		IOCON_INDEX_PIO##port_##pin
-
 /* Define GPIO modes and outputs */
 #define INPUT	0
 #define OUTPUT	1
@@ -33,13 +31,12 @@ static const gpio_pin_config_t configInput = {
 #define LOW		0
 #define HIGH	1
 
-uint8_t getPinIndex(uint8_t pin);
-
 class Pin {
 
 	public:
 
 		Pin(uint8_t pin_n, const uint8_t mode);
+		Pin(uint8_t pin_n, const uint8_t mode, const uint8_t initial_value);
 		virtual ~Pin();
 		uint8_t read();
 		void write(const uint8_t value);
@@ -49,8 +46,9 @@ class Pin {
 
 	private:
 		uint8_t port;
-		uint8_t index;
 		uint8_t	pin;
+
+		void init(uint8_t pin_n, const uint8_t mode);
 };
 
 #endif /* PIN_H_ */
