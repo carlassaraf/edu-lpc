@@ -1,83 +1,133 @@
 /*
  * USART.cpp
  *
- *  Created on: Jun 10, 2021
+ *  Created on: Oct 8, 2021
  *      Author: fabri
  */
 
 #include <USART.h>
 
-USART::USART(uint8_t n) {
-	// TODO Auto-generated constructor stub
-	if (n == 0)
-		type = USART0;
-	else if (n == 1)
-		type = USART1;
-}
+void (*usart_irq_ptr[3])(void);
 
-USART::USART(uint8_t n, uint32_t baudRate) {
+IRQn_Type usart_irq_arr[3] = {
+	USART0_IRQn,
+	USART1_IRQn,
+	USART2_IRQn
+};
 
-	if (n == 0)
-		type = USART0;
-	else if (n == 1)
-		type = USART1;
+USART::USART(uint32_t usart_type, uint32_t baud_rate) {
 
-	USART_SetBaudRate(type, baudRate, 9000000U);
+	usart_n = usart_type;
+
+    switch (usart_type) {
+
+    	case 0:	usart = USART0;
+    			for(int i = kSWM_USART0_TXD ; i < kSWM_USART1_TXD ; i++) {
+    				swm_pins[i - kSWM_USART0_TXD] = (swm_select_movable_t)i;
+    			}
+				break;
+
+    	case 1:	usart = USART1;
+    			for(int i = kSWM_USART1_TXD ; i < kSWM_USART2_TXD ; i++) {
+					swm_pins[i - kSWM_USART1_TXD] = (swm_select_movable_t)i;
+				}
+    			break;
+
+    	case 2:	usart = USART2;
+    			for(int i = kSWM_USART2_TXD ; i < kSWM_SPI0_SCK ; i++) {
+    				swm_pins[i - kSWM_USART2_TXD] = (swm_select_movable_t)i;
+    			}
+				break;
+
+    	case 3:	usart = USART3;
+    			for(int i = kSWM_USART3_TXD ; i < kSWM_USART4_TXD ; i++) {
+    				swm_pins[i - kSWM_USART3_TXD] = (swm_select_movable_t)i;
+    			}
+				break;
+
+    	case 4:	usart = USART4;
+    			for(int i = kSWM_USART4_TXD ; i < kSWM_T0_MAT_CHN0 ; i++) {
+    				swm_pins[i - kSWM_USART4_TXD] = (swm_select_movable_t)i;
+    			}
+				break;
+    }
+
+    CLOCK_Select((clock_select_t)CLK_MUX_DEFINE(FCLKSEL[usart_type], 1U));		// Select USART CLK from main CLK
+
+	SYSCON->SYSAHBCLKCTRL0 |= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;			// Enable SWM CLK
+	SWM_SetMovablePinSelect(SWM0, swm_pins[0], kSWM_PortPin_P0_25);	    // USART_TXD connect to P0_25
+	SWM_SetMovablePinSelect(SWM0, swm_pins[1], kSWM_PortPin_P0_24);		// USART_RXD connect to P0_24
+	SYSCON->SYSAHBCLKCTRL0 &= ~SYSCON_SYSAHBCLKCTRL0_SWM_MASK;			// Disable SWM CLK
+
+    usart_config_t user_config;
+    USART_GetDefaultConfig(&user_config);
+    /* Default config by using USART_GetDefaultConfig():
+     * config->baudRate_Bps = 9600U;
+     * config->parityMode = kUSART_ParityDisabled;
+     * config->stopBitCount = kUSART_OneStopBit;
+     * config->bitCountPerChar = kUSART_8BitsPerChar;
+     * config->loopback = false;
+     * config->enableRx = false;
+     * config->enableTx = false;
+     * config->syncMode = kUSART_SyncModeDisabled;
+     */
+
+    user_config.baudRate_Bps = baud_rate;
+    user_config.enableTx = true;
+    user_config.enableRx = true;
+    USART_Init(usart, &user_config, CLOCK_GetFreq(kCLOCK_MainClk));
 }
 
 USART::~USART() {
 	// TODO Auto-generated destructor stub
 }
 
-uint8_t USART::read(void) {
+void USART::prints(const uint8_t *buff) {
 
-	uint8_t str;
-	USART_ReadBlocking(type, &str, 1);
-	return str;
+	int size = 0;
+	while(*buff) {		// Get the full size of the string
+		size++;
+		buff++;
+	}
+	buff = buff - size;
+	USART_WriteBlocking(usart, buff, (size_t)size);
 }
 
-uint8_t* USART::read(uint8_t length) {
+void USART::assignPins(uint8_t txd, uint8_t rxd) {
 
-	uint8_t str[length + 1] = "";
-	USART_ReadBlocking(type, str, length + 1);
-	return str;
+	SYSCON->SYSAHBCLKCTRL0 |= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;	// Enable SWM CLK
+	SWM_SetMovablePinSelect(SWM0, swm_pins[0], kSWM_PortPin_Reset);	    			// Reset peripheral pin
+	SWM_SetMovablePinSelect(SWM0, swm_pins[1], kSWM_PortPin_Reset);					// Reset peripheral pin
+	SWM_SetMovablePinSelect(SWM0, swm_pins[0], (swm_port_pin_type_t)txd);	    	// USART_TXD connect to txd
+	SWM_SetMovablePinSelect(SWM0, swm_pins[1], (swm_port_pin_type_t)rxd);			// USART_RXD connect to rxd
+	SYSCON->SYSAHBCLKCTRL0 &= ~SYSCON_SYSAHBCLKCTRL0_SWM_MASK;	// Disable SWM CLK
 }
 
-void USART::print(const char *str) {
+void USART::attachInterrupt(void (*f)(void)) {
 
-	USART_WriteBlocking(type, (const uint8_t*)str, strlen(str) + 1);
+	usart_irq_ptr[usart_n] = f;
+	USART_EnableInterrupts(usart, kUSART_RxReadyInterruptEnable);
+	NVIC_EnableIRQ(usart_irq_arr[usart_n]);
 }
 
-// Doesnt know how to handle floats
-void USART::print(const char *str, float number) {
+void USART0_IRQHandler(void) {
 
-	char new_str[strlen(str) + 10];
-
-	sprintf(new_str, str, number);
-	print(new_str);
+	if(usart_irq_ptr[0]) {
+		usart_irq_ptr[0]();
+	}
 }
 
-void USART::print(uint8_t* bytes) {
+void USART1_IRQHandler(void) {
 
-	USART_WriteBlocking(type, bytes, sizeof(bytes));
+	USART_WriteByte(USART1, USART_ReadByte(USART1));
+	if(usart_irq_ptr[1]) {
+		usart_irq_ptr[1]();
+	}
 }
 
-void USART::print(int32_t number) {
+void USART2_IRQHandler(void) {
 
-	char str[10];
-	sprintf(str, "%ld", number);
-	print(str);
+	if(usart_irq_ptr[2]) {
+		usart_irq_ptr[2]();
+	}
 }
-
-/* USART0_IRQn interrupt handler */
-void USART0_USART_IRQHANDLER(void) {
-  /*  Place your code here */
-
-
-  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
-     Store immediate overlapping exception return operation might vector to incorrect interrupt. */
-  #if defined __CORTEX_M && (__CORTEX_M == 4U)
-    __DSB();
-  #endif
-}
-
