@@ -10,38 +10,47 @@
 
 #include <fsl_dac.h>
 #include <fsl_power.h>
-#include <math.h>
 
+/*  DAC external includes  */
+
+#include <math.h>
 #include "Timer.h"
 
-#define IOCON_DACMODE_SHIFT				16UL
+/*  DAC definitions  */
+
+#define IOCON_DACMODE_SHIFT		16UL
+#define WAVE_MAX_VALUES			360
+
+/*  typedef struct for the sine and triangular waves  */
 
 typedef struct {
-	uint32_t freq;
 	DAC_Type *dac;
-	float time_base;
 	uint32_t counter;
-} sine_wave_t;
+	uint32_t max_values;
+	uint32_t frequency;
+	float amplitude_multiplier;
+} wave_t;
 
-typedef struct {
-	uint32_t freq;
-	DAC_Type *dac;
-	bool rising;
-	uint32_t dv;
-} triangular_wave_t;
+/*  Class definition  */
 
 class DAC {
+
 	public:
 		DAC(uint32_t dac_channel);
-		virtual ~DAC();
 		void set(uint32_t value);
-		void sine(uint32_t freq);
-		void triangular(uint32_t freq);
+		uint16_t get(void);
+		void setVoltage(float voltage);
+		void sine(uint32_t frequency);
+		void triangular(uint32_t frequency);
 
 	private:
 		DAC_Type *base_dac;
+
+		void getSineWaveValues(uint32_t frequency);
+		void getTriangularValues(uint32_t frequency);
 };
 
+/*  Extra function prototypes  */
 void sine_wave(uint32_t flags);
 void triangular_wave(uint32_t flags);
 
