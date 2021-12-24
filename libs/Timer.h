@@ -26,12 +26,13 @@ typedef enum {
 class CTimer_Match {
 
 	public:
+
 		CTimer_Match(uint32_t match_channel);
-		virtual ~CTimer_Match();
 		void start(void);
 		void stop(void);
 		void setOutputPin(uint32_t match_output_pin);
 		void setMatch(uint32_t match_value);
+		void setOutputNoAction(void);
 		void setOutputToggle(void);
 		void setOutputClear(void);
 		void setOutputSet(void);
@@ -39,6 +40,7 @@ class CTimer_Match {
 		void attachInterrupt(void (*f)(uint32_t));
 
 	private:
+
 		uint32_t matchChannel;
 };
 

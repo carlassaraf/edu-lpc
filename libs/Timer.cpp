@@ -46,10 +46,6 @@ CTimer_Match::CTimer_Match(uint32_t match_channel) {
     CTIMER_SetupMatch(CTIMER0, (ctimer_match_t)match_channel, &match_config);
 }
 
-CTimer_Match::~CTimer_Match() {
-	// TODO Auto-generated destructor stub
-}
-
 /*!
  * @brief CTimer_Match start method.
 
@@ -112,6 +108,19 @@ void CTimer_Match::setMatch(uint32_t match_value) {
 
 	CTIMER0->MR[matchChannel] = match_value;
 	CTIMER0->TC = 0;
+}
+
+/*!
+ * @brief CTimer_Match setOutputNoAction method.
+
+ * Configures the output pin behavior to none.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+void CTimer_Match::setOutputNoAction(void) {
+	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << matchChannel);								// Clear previous state
 }
 
 /*!
