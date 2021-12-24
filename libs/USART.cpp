@@ -78,10 +78,6 @@ USART::USART(uint32_t usart_type, uint32_t baud_rate) {
     USART_Init(usart, &user_config, CLOCK_GetFreq(kCLOCK_MainClk));
 }
 
-USART::~USART() {
-	// TODO Auto-generated destructor stub
-}
-
 void USART::print(uint8_t ch) {
 
 	USART_WriteBlocking(usart, &ch, 1);
