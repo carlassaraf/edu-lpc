@@ -8,7 +8,11 @@
 #ifndef SYSTICK_H_
 #define SYSTICK_H_
 
+/*  SysTick includes  */
+
 #include "LPC845.h"
+
+/*  Class definition  */
 
 class Tick {
 

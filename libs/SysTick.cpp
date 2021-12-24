@@ -7,8 +7,19 @@
 
 #include <SysTick.h>
 
+/*  SysTick IRQ handler pointer  */
 static void (*isr_handler[1])(void);
 
+/*!
+ * @brief Tick constructor.
+
+ * Creates an Tick object.
+ *
+ * @param us time in microseconds to set the interrupt.
+ * @param f function to be called when interrupt triggers.
+ *
+ * @retval None.
+ */
 Tick::Tick(uint32_t us, void (*f)(void)) {
 
 	tickCounter = 0;
@@ -18,9 +29,20 @@ Tick::Tick(uint32_t us, void (*f)(void)) {
 	SysTick_Config(ticks);
 }
 
+/*!
+ * @brief Tick getTickCounter method.
+
+ * Returns the counter value.
+ *
+ * @param None.
+ *
+ * @retval counter value.
+ */
 uint32_t Tick::getTickCounter(void) {
 	return tickCounter;
 }
+
+/*  SysTick IRQ handler  */
 
 extern "C" {
 
