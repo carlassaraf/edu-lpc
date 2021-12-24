@@ -110,24 +110,27 @@ void USART::attachInterrupt(void (*f)(void)) {
 	NVIC_EnableIRQ(usart_irq_arr[usart_n]);
 }
 
-void USART0_IRQHandler(void) {
+extern "C" {
 
-	if(usart_irq_ptr[0]) {
-		usart_irq_ptr[0]();
+	void USART0_IRQHandler(void) {
+
+		if(usart_irq_ptr[0]) {
+			usart_irq_ptr[0]();
+		}
 	}
-}
 
-void USART1_IRQHandler(void) {
+	void USART1_IRQHandler(void) {
 
-	USART_WriteByte(USART1, USART_ReadByte(USART1));
-	if(usart_irq_ptr[1]) {
-		usart_irq_ptr[1]();
+		USART_WriteByte(USART1, USART_ReadByte(USART1));
+		if(usart_irq_ptr[1]) {
+			usart_irq_ptr[1]();
+		}
 	}
-}
 
-void USART2_IRQHandler(void) {
+	void USART2_IRQHandler(void) {
 
-	if(usart_irq_ptr[2]) {
-		usart_irq_ptr[2]();
+		if(usart_irq_ptr[2]) {
+			usart_irq_ptr[2]();
+		}
 	}
 }
