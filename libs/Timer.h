@@ -8,7 +8,11 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
+/*  Timer includes  */
+
 #include <fsl_ctimer.h>
+
+/*  Ctimer IRQ types  */
 
 typedef enum {
 	kMR0INT_IRQ,
@@ -16,6 +20,8 @@ typedef enum {
 	kMR2INT_IRQ,
 	kMR3INT_IRQ
 } ctimer_irq_type_t;
+
+/*  Ctimer_Match class definition  */
 
 class CTimer_Match {
 
