@@ -110,6 +110,18 @@ void USART::attachInterrupt(void (*f)(void)) {
 	NVIC_EnableIRQ(usart_irq_arr[usart_n]);
 }
 
+uint8_t USART::read(void) {
+
+	uint8_t ch[1];
+	USART_ReadBlocking(usart, ch, 1);
+	return ch[0];
+}
+
+void USART::read(uint8_t *buffer, uint32_t size) {
+
+	USART_ReadBlocking(usart, buffer, size);
+}
+
 extern "C" {
 
 	void USART0_IRQHandler(void) {

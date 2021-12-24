@@ -13,6 +13,7 @@
 #include <fsl_swm.h>
 
 class USART {
+	
 	public:
 
 		uint32_t usart_n;
@@ -25,6 +26,8 @@ class USART {
 		void prints(const uint8_t *buff);
 		void assignPins(uint8_t txd, uint8_t rxd);
 		void attachInterrupt(void (*f)(void));
+		uint8_t read(void);
+		void read(uint8_t *buffer, uint32_t size);
 };
 
 #endif /* USART_H_ */
