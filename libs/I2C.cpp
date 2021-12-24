@@ -125,8 +125,6 @@ void I2C::init(uint32_t i2cn, uint32_t frequency) {
 	i2cx = i2cn;
 	i2c = getInstance(i2cn);
 
-	swm_select_movable_t swm_sda, swm_scl;
-
 	if (i2cx == 0) {
 	    CLOCK_EnableClock(kCLOCK_Swm);
 	    SWM_SetFixedPinSelect(SWM0, kSWM_I2C0_SDA, true);		// PIO0_11
