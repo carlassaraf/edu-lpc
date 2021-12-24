@@ -13,7 +13,7 @@
 #include <fsl_swm.h>
 
 class USART {
-	
+
 	public:
 
 		uint32_t usart_n;
@@ -22,8 +22,12 @@ class USART {
 
 		USART(uint32_t usart_type, uint32_t baud_rate);
 		virtual ~USART();
-
-		void prints(const uint8_t *buff);
+		void print(uint8_t ch);
+		void print(uint8_t *buff);
+		void print(const char *str);
+		void print(uint8_t *buff, uint32_t size);
+		void printd(const char *format, int32_t value);
+		void printf(const char *format, float value);
 		void assignPins(uint8_t txd, uint8_t rxd);
 		void attachInterrupt(void (*f)(void));
 		uint8_t read(void);

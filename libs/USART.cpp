@@ -82,15 +82,46 @@ USART::~USART() {
 	// TODO Auto-generated destructor stub
 }
 
-void USART::prints(const uint8_t *buff) {
+void USART::print(uint8_t ch) {
+
+	USART_WriteBlocking(usart, &ch, 1);
+}
+
+void USART::print(uint8_t *buff) {
+
+	print((char*)buff);
+}
+
+void USART::print(const char *str) {
 
 	int size = 0;
-	while(*buff) {		// Get the full size of the string
+	while(*str) {		// Get the full size of the string
 		size++;
-		buff++;
+		str++;
 	}
-	buff = buff - size;
+	str = str - size;
+	USART_WriteBlocking(usart, str, (size_t)size);
+}
+
+void USART::print(uint8_t *buff, uint32_t size) {
+
 	USART_WriteBlocking(usart, buff, (size_t)size);
+}
+
+void USART::printd(const char *format, int32_t value) {
+
+	char buff[50];
+
+	sprintf(buff, format, value);
+	print(buff);
+}
+
+void USART::printf(const char *format, float value) {
+
+	char buff[50];
+
+	sprintf(buff, format, value);
+	print(buff);
 }
 
 void USART::assignPins(uint8_t txd, uint8_t rxd) {
