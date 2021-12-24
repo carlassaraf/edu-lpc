@@ -8,8 +8,12 @@
 #ifndef ADC_H_
 #define ADC_H_
 
+/*  ADC includes  */
+
 #include <fsl_adc.h>
 #include <fsl_common.h>
+
+/*  ADC IRQ indexes  */
 
 #define ADC_SEQA_IRQ_INDEX	0
 #define ADC_SEQB_IRQ_INDEX	1
@@ -18,6 +22,8 @@
 
 #define SYSCON_PDRUNCFG_ADC0_SHIFT	4UL
 
+/*  Interrupts available  */
+
 typedef enum {
 	kSEQA_IRQ,
 	kSEQB_IRQ,
@@ -25,16 +31,24 @@ typedef enum {
 	kOVR_IRQ
 } adc_irq_type_t;
 
+/*  Class definition  */
+
 class ADC {
+
 	public:
+	
+		ADC(void);
 		ADC(uint32_t channel);
-		virtual ~ADC();
 		uint32_t read(void);
 		uint32_t ready(void);
+		uint32_t getResult(void);
 		void attachInterrupt(void (*f)(void), adc_irq_type_t type);
 
 	private:
+	
 		uint32_t selected_channel;
+
+		void init(uint32_t channel);
 };
 
 #endif /* ADC_H_ */
