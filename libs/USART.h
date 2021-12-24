@@ -8,9 +8,13 @@
 #ifndef USART_H_
 #define USART_H_
 
+/*  USART includes  */
+
 #include <fsl_common.h>
 #include <fsl_usart.h>
 #include <fsl_swm.h>
+
+/*  Class definition  */
 
 class USART {
 

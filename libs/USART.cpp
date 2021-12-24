@@ -7,14 +7,27 @@
 
 #include <USART.h>
 
+/*  USART IRQ handler pointer  */
 void (*usart_irq_ptr[3])(void);
 
+/*  Array with the different USART IRQs  */
 IRQn_Type usart_irq_arr[3] = {
 	USART0_IRQn,
 	USART1_IRQn,
 	USART2_IRQn
 };
 
+/*!
+ * @brief USART constructor.
+
+ * Creates an USART object. Default pins are PIO0_25 for TXD
+ * and PIO0_24 for RXD.
+ *
+ * @param usart_type is the USART module to use (0-4).
+ * @param baud_rate speed of the communication in bauds.
+ *
+ * @retval None.
+ */
 USART::USART(uint32_t usart_type, uint32_t baud_rate) {
 
 	usart_n = usart_type;
@@ -78,16 +91,43 @@ USART::USART(uint32_t usart_type, uint32_t baud_rate) {
     USART_Init(usart, &user_config, CLOCK_GetFreq(kCLOCK_MainClk));
 }
 
+/*!
+ * @brief USART print method.
+
+ * Sends a single byte through USART.
+ *
+ * @param byte to be sent.
+ *
+ * @retval None.
+ */
 void USART::print(uint8_t ch) {
 
 	USART_WriteBlocking(usart, &ch, 1);
 }
 
+/*!
+ * @brief USART print method.
+
+ * Sends an array through USART.
+ *
+ * @param buff array to be sent.
+ *
+ * @retval None.
+ */
 void USART::print(uint8_t *buff) {
 
 	print((char*)buff);
 }
 
+/*!
+ * @brief USART print method.
+
+ * Sends a string through USART.
+ *
+ * @param str string to be sent.
+ *
+ * @retval None.
+ */
 void USART::print(const char *str) {
 
 	int size = 0;
@@ -99,11 +139,31 @@ void USART::print(const char *str) {
 	USART_WriteBlocking(usart, str, (size_t)size);
 }
 
+/*!
+ * @brief USART print method.
+
+ * Sends a number of bytes through USART.
+ *
+ * @param buff array to be sent.
+ * @param size number of bytes to be sent.
+ *
+ * @retval None.
+ */
 void USART::print(uint8_t *buff, uint32_t size) {
 
 	USART_WriteBlocking(usart, buff, (size_t)size);
 }
 
+/*!
+ * @brief USART printd method.
+
+ * Sends a formatted string with an integer through USART.
+ *
+ * @param format formatted string to be sent.
+ * @param value integer to be sent with the string.
+ *
+ * @retval None.
+ */
 void USART::printd(const char *format, int32_t value) {
 
 	char buff[50];
@@ -112,6 +172,16 @@ void USART::printd(const char *format, int32_t value) {
 	print(buff);
 }
 
+/*!
+ * @brief USART printf method.
+
+ * Sends a formatted string with an float through USART.
+ *
+ * @param format formatted string to be sent.
+ * @param value float to be sent with the string.
+ *
+ * @retval None.
+ */
 void USART::printf(const char *format, float value) {
 
 	char buff[50];
@@ -120,6 +190,16 @@ void USART::printf(const char *format, float value) {
 	print(buff);
 }
 
+/*!
+ * @brief USART assignPins method.
+
+ * Sets the TXD and RXD pins for the USART.
+ *
+ * @param txd index of the pin to be used.
+ * @param rxd index of the pin to be used.
+ *
+ * @retval None.
+ */
 void USART::assignPins(uint8_t txd, uint8_t rxd) {
 
 	SYSCON->SYSAHBCLKCTRL0 |= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;	// Enable SWM CLK
@@ -130,6 +210,15 @@ void USART::assignPins(uint8_t txd, uint8_t rxd) {
 	SYSCON->SYSAHBCLKCTRL0 &= ~SYSCON_SYSAHBCLKCTRL0_SWM_MASK;	// Disable SWM CLK
 }
 
+/*!
+ * @brief USART attachInterrupt method.
+
+ * Attach a function to the interrupt handler.
+ *
+ * @param f function to be used.
+ *
+ * @retval None.
+ */
 void USART::attachInterrupt(void (*f)(void)) {
 
 	usart_irq_ptr[usart_n] = f;
@@ -137,6 +226,15 @@ void USART::attachInterrupt(void (*f)(void)) {
 	NVIC_EnableIRQ(usart_irq_arr[usart_n]);
 }
 
+/*!
+ * @brief USART read method.
+
+ * Reads a byte from the USART by polling.
+ *
+ * @param None
+ *
+ * @retval byte read.
+ */
 uint8_t USART::read(void) {
 
 	if(usart->INTENSET) {		// Check if there is an interrupt enabled
@@ -148,10 +246,22 @@ uint8_t USART::read(void) {
 	return ch[0];
 }
 
+/*!
+ * @brief USART read method.
+
+ * Reads a number of bytes from the USART by polling.
+ *
+ * @param buffer array to store the data.
+ * @param size number of bytes to be read.
+ *
+ * @retval None.
+ */
 void USART::read(uint8_t *buffer, uint32_t size) {
 
 	USART_ReadBlocking(usart, buffer, size);
 }
+
+/*  USART IRQ handlers  */
 
 extern "C" {
 
