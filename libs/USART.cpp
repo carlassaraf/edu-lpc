@@ -139,6 +139,10 @@ void USART::attachInterrupt(void (*f)(void)) {
 
 uint8_t USART::read(void) {
 
+	if(usart->INTENSET) {		// Check if there is an interrupt enabled
+
+		return usart->RXDAT & 0xf;
+	}
 	uint8_t ch[1];
 	USART_ReadBlocking(usart, ch, 1);
 	return ch[0];
