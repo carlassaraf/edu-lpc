@@ -1,5 +1,5 @@
 /*
- * Timer.h
+ * CTimer.h
  *
  *  Created on: Nov 12, 2021
  *      Author: fabri
@@ -8,11 +8,11 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
-/*  Timer includes  */
+/*  CTimer includes  */
 
 #include <fsl_ctimer.h>
 
-/*  Ctimer IRQ types  */
+/*  CTimer IRQ types  */
 
 typedef enum {
 	kMR0INT_IRQ,
@@ -21,7 +21,7 @@ typedef enum {
 	kMR3INT_IRQ
 } ctimer_irq_type_t;
 
-/*  Ctimer class definition  */
+/*  CTimer class definition  */
 
 class CTimer {
 
