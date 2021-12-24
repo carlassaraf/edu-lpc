@@ -22,9 +22,12 @@ uint32_t Tick::getTickCounter(void) {
 	return tickCounter;
 }
 
-void SysTick_Handler(void) {
+extern "C" {
 
-	if (isr_handler[0]) {
-		isr_handler[0]();
-	}
+    void SysTick_Handler(void) {
+
+        if (isr_handler[0]) {
+            isr_handler[0]();
+        }
+    }
 }
