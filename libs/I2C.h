@@ -28,6 +28,7 @@ class I2C {
 	private:
 
 		I2C_Type *i2c;
+        uint32_t i2cx;
 
 		void init(uint32_t i2cn, uint32_t frequency);
         I2C_Type* getInstance(uint32_t i2cn);

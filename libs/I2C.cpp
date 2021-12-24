@@ -122,46 +122,20 @@ status_t I2C::read(uint8_t address, uint8_t *buff, uint32_t size) {
  */
 void I2C::init(uint32_t i2cn, uint32_t frequency) {
 
+	i2cx = i2cn;
+	i2c = getInstance(i2cn);
+
 	swm_select_movable_t swm_sda, swm_scl;
 
-	switch (i2cn) {
-
-		case 0:
-			i2c = I2C0;
-			CLOCK_Select(kI2C0_Clk_From_MainClk);
-		    CLOCK_EnableClock(kCLOCK_Swm);
-		    SWM_SetFixedPinSelect(SWM0, kSWM_I2C0_SDA, true);		// PIO0_11
-		    SWM_SetFixedPinSelect(SWM0, kSWM_I2C0_SCL, true);		// PIO0_10
-		    CLOCK_DisableClock(kCLOCK_Swm);
-			break;
-
-		case 1:
-			i2c = I2C1;
-			CLOCK_Select(kI2C1_Clk_From_MainClk);
-			swm_sda = kSWM_I2C1_SDA;
-			swm_scl = kSWM_I2C1_SCL;
-			break;
-
-		case 2:
-			i2c = I2C2;
-			CLOCK_Select(kI2C2_Clk_From_MainClk);
-			swm_sda = kSWM_I2C2_SDA;
-			swm_scl = kSWM_I2C2_SCL;
-			break;
-
-		case 3:
-			i2c = I2C3;
-			CLOCK_Select(kI2C3_Clk_From_MainClk);
-			swm_sda = kSWM_I2C3_SDA;
-			swm_scl = kSWM_I2C3_SCL;
-			break;
+	if (i2cx == 0) {
+	    CLOCK_EnableClock(kCLOCK_Swm);
+	    SWM_SetFixedPinSelect(SWM0, kSWM_I2C0_SDA, true);		// PIO0_11
+	    SWM_SetFixedPinSelect(SWM0, kSWM_I2C0_SCL, true);		// PIO0_10
+	    CLOCK_DisableClock(kCLOCK_Swm);
 	}
 
-	if (i2cn > 0) {
-		SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;		// Enable SWM CLK
-		SWM_SetMovablePinSelect(SWM0, swm_sda, kSWM_PortPin_P0_0);
-		SWM_SetMovablePinSelect(SWM0, swm_scl, kSWM_PortPin_P0_1);
-		SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);	// Disable SWM CLK
+	else if (i2cx > 0) {
+		assignPins(0, 1);
 	}
 
 	i2c_master_config_t masterConfig;
