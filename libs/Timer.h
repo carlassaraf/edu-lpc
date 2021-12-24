@@ -21,13 +21,13 @@ typedef enum {
 	kMR3INT_IRQ
 } ctimer_irq_type_t;
 
-/*  Ctimer_Match class definition  */
+/*  Ctimer class definition  */
 
-class CTimer_Match {
+class CTimer {
 
 	public:
 
-		CTimer_Match(uint32_t match_channel);
+		CTimer(uint32_t match_channel);
 		void start(void);
 		void stop(void);
 		void setOutputPin(uint32_t match_output_pin);

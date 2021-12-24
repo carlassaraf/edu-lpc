@@ -12,15 +12,15 @@
 ctimer_callback_t ctimer_callbacks[] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 /*!
- * @brief CTimer_Match constructor.
+ * @brief CTimer constructor.
 
- * Creates a Ctimer_Match object.
+ * Creates a CTimer object.
  *
  * @param match_channel to use (0-3).
  *
  * @retval None.
  */
-CTimer_Match::CTimer_Match(uint32_t match_channel) {
+CTimer::CTimer(uint32_t match_channel) {
 
 	matchChannel = match_channel;
 
@@ -47,7 +47,7 @@ CTimer_Match::CTimer_Match(uint32_t match_channel) {
 }
 
 /*!
- * @brief CTimer_Match start method.
+ * @brief CTimer start method.
 
  * Starts the counter.
  *
@@ -55,12 +55,12 @@ CTimer_Match::CTimer_Match(uint32_t match_channel) {
  *
  * @retval None.
  */
-void CTimer_Match::start(void) {
+void CTimer::start(void) {
 	CTIMER_StartTimer(CTIMER0);
 }
 
 /*!
- * @brief CTimer_Match stop method.
+ * @brief CTimer stop method.
 
  * Stops the counter.
  *
@@ -68,12 +68,12 @@ void CTimer_Match::start(void) {
  *
  * @retval None.
  */
-void CTimer_Match::stop(void) {
+void CTimer::stop(void) {
 	CTIMER_StopTimer(CTIMER0);
 }
 
 /*!
- * @brief CTimer_Match setOutputPin method.
+ * @brief CTimer setOutputPin method.
 
  * Configures a pin as an output for the match event.
  *
@@ -81,7 +81,7 @@ void CTimer_Match::stop(void) {
  *
  * @retval None.
  */
-void CTimer_Match::setOutputPin(uint32_t match_output_pin) {
+void CTimer::setOutputPin(uint32_t match_output_pin) {
 
 	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;		// Enable Switch Matrix
 
@@ -96,7 +96,7 @@ void CTimer_Match::setOutputPin(uint32_t match_output_pin) {
 }
 
 /*!
- * @brief CTimer_Match setMatch method.
+ * @brief CTimer setMatch method.
 
  * Sets a new value to the counter.
  *
@@ -104,14 +104,14 @@ void CTimer_Match::setOutputPin(uint32_t match_output_pin) {
  *
  * @retval None.
  */
-void CTimer_Match::setMatch(uint32_t match_value) {
+void CTimer::setMatch(uint32_t match_value) {
 
 	CTIMER0->MR[matchChannel] = match_value;
 	CTIMER0->TC = 0;
 }
 
 /*!
- * @brief CTimer_Match setOutputNoAction method.
+ * @brief CTimer setOutputNoAction method.
 
  * Configures the output pin behavior to none.
  *
@@ -119,12 +119,12 @@ void CTimer_Match::setMatch(uint32_t match_value) {
  *
  * @retval None.
  */
-void CTimer_Match::setOutputNoAction(void) {
+void CTimer::setOutputNoAction(void) {
 	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << matchChannel);								// Clear previous state
 }
 
 /*!
- * @brief CTimer_Match setOutputToggle method.
+ * @brief CTimer setOutputToggle method.
 
  * Configures the output pin behavior to toggle.
  *
@@ -132,13 +132,13 @@ void CTimer_Match::setOutputNoAction(void) {
  *
  * @retval None.
  */
-void CTimer_Match::setOutputToggle(void) {
+void CTimer::setOutputToggle(void) {
 	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << matchChannel);								// Clear previous state
 	CTIMER0->EMR |= kCTIMER_Output_Toggle << (matchChannel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
 }
 
 /*!
- * @brief CTimer_Match setOutputClear method.
+ * @brief CTimer setOutputClear method.
 
  * Configures the output pin behavior to clear.
  *
@@ -146,13 +146,13 @@ void CTimer_Match::setOutputToggle(void) {
  *
  * @retval None.
  */
-void CTimer_Match::setOutputClear(void) {
+void CTimer::setOutputClear(void) {
 	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << matchChannel);								// Clear previous state
 	CTIMER0->EMR |= kCTIMER_Output_Clear << (matchChannel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
 }
 
 /*!
- * @brief CTimer_Match setOutputSet method.
+ * @brief CTimer setOutputSet method.
 
  * Configures the output pin behavior to set.
  *
@@ -160,13 +160,13 @@ void CTimer_Match::setOutputClear(void) {
  *
  * @retval None.
  */
-void CTimer_Match::setOutputSet(void) {
+void CTimer::setOutputSet(void) {
 	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << matchChannel);							// Clear previous state
 	CTIMER0->EMR |= kCTIMER_Output_Set << (matchChannel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
 }
 
 /*!
- * @brief CTimer_Match setFrequency method.
+ * @brief CTimer setFrequency method.
 
  * Sets the match register to trigger the event with
  * the desired frequency..
@@ -175,14 +175,14 @@ void CTimer_Match::setOutputSet(void) {
  *
  * @retval None.
  */
-void CTimer_Match::setFrequency(uint32_t freq) {
+void CTimer::setFrequency(uint32_t freq) {
 
 	uint32_t ctimer_freq = CLOCK_GetFreq(kCLOCK_CoreSysClk) / (CTIMER0->PR + 1);	// Get the CTIMER running frequency
 	setMatch(ctimer_freq / freq);
 }
 
 /*!
- * @brief CTimer_Match attachInterrupt method.
+ * @brief CTimer attachInterrupt method.
 
  * Attaches a function to the match interrupt.
  *
@@ -190,7 +190,7 @@ void CTimer_Match::setFrequency(uint32_t freq) {
  *
  * @retval None.
  */
-void CTimer_Match::attachInterrupt(void (*f)(uint32_t)) {
+void CTimer::attachInterrupt(void (*f)(uint32_t)) {
 
 	CTIMER0->MCR |= 1 << (matchChannel * 3U);											// Enable appropiate interrupt
 	(void)EnableIRQ(CTIMER_IRQS);
