@@ -19,7 +19,7 @@ class SPI {
 
 	public:
 
-		SPI(uint32_t spin, uint32_t mosi = 26, uint32_t miso = 27, uint32_t sck = 28, uint32_t ssel = 29);
+		SPI(uint32_t spin = 0, uint32_t mosi = 26, uint32_t miso = 27, uint32_t sck = 28, uint32_t ssel = 29);
 		void transfer(uint8_t *tx, uint8_t *rx, uint8_t size);
 
 	private:

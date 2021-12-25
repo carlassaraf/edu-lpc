@@ -7,6 +7,19 @@
 
 #include <SPI.h>
 
+/*!
+ * @brief SPI constructor.
+
+ * Creates an SPI object. 
+ * 
+ * @param spin index of the SPI to be used. Defaults to 0.
+ * @param mosi index of the pin to be used. Defaults to 26.
+ * @param miso index of the pin to be used. Defaults to 27.
+ * @param sck index of the pin to be used. Defaults to 28.
+ * @param ssel index of the pin to be used. Defaults to 29.
+ *
+ * @retval None.
+ */
 SPI::SPI(uint32_t spin, uint32_t mosi, uint32_t miso, uint32_t sck, uint32_t ssel) {
 
     CLOCK_EnableClock(kCLOCK_Swm);
@@ -42,7 +55,18 @@ SPI::SPI(uint32_t spin, uint32_t mosi, uint32_t miso, uint32_t sck, uint32_t sse
     SPI_MasterInit(spi, &userConfig, srcFreq);
 }
 
-void SPI::send(uint8_t *tx, uint8_t *rx, uint8_t size) {
+/*!
+ * @brief SPI transfer method.
+
+ * Initiates a transfer through SPI. 
+ * 
+ * @param tx array with the bytes to be sent.
+ * @param rx array to store the read bytes.
+ * @param size number of bytes to be sent.
+ * 
+ * @retval None.
+ */
+void SPI::transfer(uint8_t *tx, uint8_t *rx, uint8_t size) {
 
     spi_transfer_t xfer = {0};
 	xfer.txData      = tx;
