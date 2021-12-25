@@ -8,8 +8,12 @@
 #ifndef PWM_H_
 #define PWM_H_
 
+/*  PWM includes  */
+
 #include <fsl_sctimer.h>
 #include <fsl_swm.h>
+
+/*  Class definition  */
 
 class PWM {
 
