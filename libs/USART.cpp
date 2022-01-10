@@ -239,7 +239,7 @@ uint8_t USART::read(void) {
 
 	if(usart->INTENSET) {		// Check if there is an interrupt enabled
 
-		return usart->RXDAT & 0xf;
+		return usart->RXDAT;
 	}
 	uint8_t ch[1];
 	USART_ReadBlocking(usart, ch, 1);
