@@ -131,7 +131,7 @@ void Pin::set(void) {
  */
 void Pin::clear(void) {
 
-	GPIO->CLR[port] = 1UL << pin;
+	GPIO->CLR[port] |= 1UL << pin;
 }
 
 /*!
@@ -145,7 +145,7 @@ void Pin::clear(void) {
  */
 void Pin::toggle(void) {
 
-	GPIO->NOT[port] = 1UL << pin;
+	GPIO->NOT[port] |= 1UL << pin;
 }
 
 /*!
