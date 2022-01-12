@@ -274,7 +274,6 @@ extern "C" {
 
 	void USART1_IRQHandler(void) {
 
-		USART_WriteByte(USART1, USART_ReadByte(USART1));
 		if(usart_irq_ptr[1]) {
 			usart_irq_ptr[1]();
 		}
