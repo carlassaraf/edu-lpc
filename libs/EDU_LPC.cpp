@@ -76,6 +76,11 @@ void comHandler(void) {
 					val = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
 					cmd_dac_sine(rxBuffer[DATA1_INDEX], val);
 					break;
+
+				case kcmd_dac_triangular:
+					val = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
+					cmd_dac_triangular(rxBuffer[DATA1_INDEX], val);
+					break;
 			}
 		}
 		rxIndex = 0;
@@ -181,6 +186,15 @@ void cmd_dac_sine(uint8_t channel, uint32_t frequency) {
 	}
 
 	dac[channel]->sine(frequency);
+}
+
+void cmd_dac_triangular(uint8_t channel, uint32_t frequency) {
+
+	if(dac[channel] == nullptr) {
+		return;
+	}
+
+	dac[channel]->triangular(frequency);
 }
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t size) {

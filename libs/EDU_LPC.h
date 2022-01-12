@@ -65,6 +65,7 @@ void cmd_gpio_toggle(uint8_t pin);
 void cmd_adc_read(uint8_t channel);
 void cmd_lm35(cmd_codes cmd, float temp);
 void cmd_dac_sine(uint8_t channel, uint32_t frequency);
+void cmd_dac_triangular(uint8_t channel, uint32_t frequency);
 uint8_t calculate_checksum(uint8_t *data, uint8_t size);
 void dataHandler(uint8_t *data, uint8_t size);
 
