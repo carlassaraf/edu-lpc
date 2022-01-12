@@ -20,6 +20,7 @@
 #define CMD_INDEX		1
 #define DATA1_INDEX		2
 #define DATA2_INDEX		3
+#define DATA3_INDEX		4
 
 #define GPIO_START_INDEX	16
 #define ADC_LAST_CHANNEL	10
@@ -33,7 +34,8 @@ typedef enum {
 	kcmd_gpio_sstatus = 0x05,
 	kcmd_adc_read = 0x06,
 	kcmd_lm35_c = 0x07,
-	kcmd_lm35_f = 0x08
+	kcmd_lm35_f = 0x08,
+	kcmd_dac_set = 0x09
 } cmd_codes;
 
 typedef enum {

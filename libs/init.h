@@ -12,6 +12,7 @@
 
 extern USART serial;
 extern LM35 lm;
+extern DAC analogOut;
 
 Pin gled(32, OUTPUT, 1);
 Pin bled(33, OUTPUT, 1);

@@ -19,11 +19,13 @@ ADC *adc[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nu
 DAC *dac[] = { nullptr, nullptr };
 
 LM35 lm(1);
+DAC analogOut(1);
 
 void init(void) {
 
 	serial.assignPins(0, 1);
 	serial.attachInterrupt(cmd_reception);
+	dac[1] = &analogOut;
 }
 
 void comHandler(void) {
@@ -62,6 +64,11 @@ void comHandler(void) {
 
 				case kcmd_lm35_f:
 					cmd_lm35(kcmd_lm35_f, lm.getTemperatureFahrenheit());
+					break;
+
+				case kcmd_dac_set:
+					uint16_t val = ((uint16_t)rxBuffer[DATA2_INDEX] << 2) + rxBuffer[DATA3_INDEX];
+					cmd_dac_set(rxBuffer[DATA1_INDEX], val);
 					break;
 			}
 		}
@@ -150,6 +157,15 @@ void cmd_lm35(cmd_codes cmd, float temp) {
 		low
 	};
 	dataHandler(buff, 3);
+}
+
+void cmd_dac_set(uint8_t channel, uint32_t value) {
+
+	if(dac[channel] == nullptr) {
+		return;
+	}
+
+	dac[channel]->set(value);
 }
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t size) {
