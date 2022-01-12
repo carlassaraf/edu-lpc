@@ -155,7 +155,8 @@ void cmd_lm35(cmd_codes cmd, float temp) {
 uint8_t calculate_checksum(uint8_t *data, uint8_t size) {
 
 	uint16_t checksum = 0;
-	for(int i = 0; i < size; i++) {
+    // Checksum calculation starts after the length byte
+	for(int i = 1; i < size; i++) {
 
 		checksum += data[i];
 	}
