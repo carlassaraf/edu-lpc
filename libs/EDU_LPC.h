@@ -26,6 +26,8 @@
 #define ADC_LAST_CHANNEL	10
 #define DAC0_PIN_INDEX		17
 
+#define _8BIT_TO_16BIT_(high, low)	((uint16_t)high << 8) + low
+
 typedef enum {
 	kcmd_config = 0x01,
 	kcmd_gpio_clear = 0x02,
@@ -35,7 +37,10 @@ typedef enum {
 	kcmd_adc_read = 0x06,
 	kcmd_lm35_c = 0x07,
 	kcmd_lm35_f = 0x08,
-	kcmd_dac_set = 0x09
+	kcmd_dac_set = 0x09,
+	kcmd_dac_sine = 0x0a,
+	kcmd_dac_triangular = 0x0b,
+	kcmd_dac_wave = 0x0c
 } cmd_codes;
 
 typedef enum {
@@ -59,6 +64,7 @@ void cmd_gpio_set(uint8_t pin);
 void cmd_gpio_toggle(uint8_t pin);
 void cmd_adc_read(uint8_t channel);
 void cmd_lm35(cmd_codes cmd, float temp);
+void cmd_dac_sine(uint8_t channel, uint32_t frequency);
 uint8_t calculate_checksum(uint8_t *data, uint8_t size);
 void dataHandler(uint8_t *data, uint8_t size);
 
