@@ -81,6 +81,11 @@ void comHandler(void) {
 					val = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
 					cmd_dac_triangular(rxBuffer[DATA1_INDEX], val);
 					break;
+										
+				case kcmd_dac_wave:
+					bool enable = (bool)rxBuffer[DATA2_INDEX];
+					cmd_dac_wave(rxBuffer[DATA1_INDEX], enable);
+					break;
 			}
 		}
 		rxIndex = 0;
@@ -195,6 +200,19 @@ void cmd_dac_triangular(uint8_t channel, uint32_t frequency) {
 	}
 
 	dac[channel]->triangular(frequency);
+}
+
+void cmd_dac_wave(uint8_t channel, bool enable) {
+
+	if(dac[channel] == nullptr) {
+		return;
+	}
+	if(enable) {
+		dac[channel]->timer->start();
+	}
+	else {
+		dac[channel]->timer->stop();
+	}
 }
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t size) {
