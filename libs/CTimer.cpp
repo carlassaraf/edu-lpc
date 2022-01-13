@@ -73,6 +73,19 @@ void CTimer::stop(void) {
 }
 
 /*!
+ * @brief CTimer stop method.
+
+ * Resets the counter.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+void CTimer::reset(void) {
+	CTIMER_Reset(CTIMER0);
+}
+
+/*!
  * @brief CTimer setOutputPin method.
 
  * Configures a pin as an output for the match event.

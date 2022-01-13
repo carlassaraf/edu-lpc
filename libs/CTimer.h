@@ -30,6 +30,7 @@ class CTimer {
 		CTimer(uint32_t match_channel);
 		void start(void);
 		void stop(void);
+		void reset(void);
 		void setOutputPin(uint32_t match_output_pin);
 		void setMatch(uint32_t match_value);
 		void setOutputNoAction(void);
