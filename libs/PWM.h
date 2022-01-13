@@ -10,7 +10,7 @@
 
 /*  PWM includes  */
 
-#include <fsl_sctimer.h>
+#include "SCTimer.h"
 #include <fsl_swm.h>
 
 /*  Class definition  */
