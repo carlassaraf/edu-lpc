@@ -30,7 +30,7 @@ void init(void) {
 	dac[1] = &analogOut;
 }
 
-void comHandler(void) {
+void com_handler(void) {
 
 	if(rxDone) {
 

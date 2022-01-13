@@ -60,7 +60,7 @@ typedef enum {
 void init(void);
 
 // Communication functions
-void comHandler(void);
+void com_handler(void);
 void cmd_reception(void);
 void cmd_config(uint8_t pin, uint8_t function);
 void cmd_gpio_clear(uint8_t pin);
