@@ -15,6 +15,7 @@
 #include "USART.h"
 #include "DAC.h"
 #include "LM35.h"
+#include "PWM.h"
 
 #define SIZE_INDEX		0
 #define CMD_INDEX		1
@@ -40,14 +41,18 @@ typedef enum {
 	kcmd_dac_set = 0x09,
 	kcmd_dac_sine = 0x0a,
 	kcmd_dac_triangular = 0x0b,
-	kcmd_dac_wave = 0x0c
+	kcmd_dac_wave = 0x0c,
+	kcmd_pwm_config = 0x0d,
+	kcmd_pwm_frequency = 0x0e,
+	kcmd_pwm_duty = 0x0f
 } cmd_codes;
 
 typedef enum {
 	kconfig_input = 0x00,
 	kconfig_output = 0x01,
 	kconfig_adc = 0x02,
-	kconfig_dac = 0x03
+	kconfig_dac = 0x03,
+	kconfig_pwm = 0x04
 } config_codes;
 
 /*  Function prototypes  */

@@ -18,6 +18,8 @@ Pin *gpio[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, n
 ADC *adc[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 DAC *dac[] = { nullptr, nullptr };
 
+PWM *pwm[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+
 LM35 lm(1);
 DAC analogOut(1);
 
@@ -102,7 +104,9 @@ void cmd_config(uint8_t pin, uint8_t function) {
 
 		// Free memory from other objects
 		delete adc[index];
+		delete pwm[index];
 		adc[index] = nullptr;
+		pwm[index] = nullptr;
 		if(pin == DAC0_PIN_INDEX) {
 			delete dac[0];
 			dac[0] = nullptr;
@@ -115,24 +119,51 @@ void cmd_config(uint8_t pin, uint8_t function) {
 
 	if(function == kconfig_adc) {
 
+		// Free memory from other objects
+		delete gpio[index];
+		delete pwm[index];
+		gpio[index] = nullptr;
+		pwm[index] = nullptr;
 		if(pin == DAC0_PIN_INDEX) {
 			delete dac[0];
 			dac[0] = nullptr;
 		}
-		delete gpio[index];
-		gpio[index] = nullptr;
+
+		// Allocate new memory
 		adc[index] = new ADC(channel);
 		return;
 	}
 
 	if(function == kconfig_dac) {
 
+		// Free memory from other objects
+		delete gpio[index];
+		delete adc[index];
+		delete pwm[index];
+		gpio[index] = nullptr;
+		adc[index] = nullptr;
+		pwm[index] = nullptr;
+
+		// Allocate new memory
+		dac[0] = new DAC(0);
+		return;
+	}
+
+	if(function == kconfig_pwm) {
+		
+		// Free memory from other objects
 		delete gpio[index];
 		delete adc[index];
 		gpio[index] = nullptr;
 		adc[index] = nullptr;
-
-		dac[0] = new DAC(0);
+		if(pin == DAC0_PIN_INDEX) {
+			delete dac[0];
+			dac[0] = nullptr;
+		}
+		
+		// Allocate new memory
+		pwm[index] = new PWM(index, 1000, pin);		
+		return;
 	}
 }
 
