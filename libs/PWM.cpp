@@ -148,6 +148,7 @@ void PWM::init(uint32_t frequency, bool logic) {
 		pwmFrequency = frequency;
 	}
 
+	SCTIMER_StopTimer(timer->getSCTimer(), kSCTIMER_Counter_U);		// Stop counter before configuring another PWM
 	uint32_t sctimerClock = CLOCK_GetFreq(kCLOCK_Fro);
 	SCTIMER_SetupPwm(timer->getSCTimer(), &pwmParam, kSCTIMER_CenterAlignedPwm, pwmFrequency, sctimerClock, &event);
 	SCTIMER_StartTimer(timer->getSCTimer(), kSCTIMER_Counter_U);
