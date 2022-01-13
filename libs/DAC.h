@@ -42,6 +42,7 @@ class DAC {
 		void setVoltage(float voltage);
 		void sine(uint32_t frequency);
 		void triangular(uint32_t frequency);
+		CTimer* getTimer(void);
 
 	private:
 		DAC_Type *base_dac;

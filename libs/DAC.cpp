@@ -219,6 +219,20 @@ void DAC::getTriangularValues(uint32_t frequency) {
 }
 
 /*!
+ * @brief DAC getTimer method.
+
+ * Returns a pointer to the private CTimer
+ * assigned to the DAC object.
+ *
+ * @param None.
+ *
+ * @retval pointer to the CTimer.
+ */
+CTimer* DAC::getTimer(void) {
+	return timer;
+}
+
+/*!
  * @brief DAC sine wave handler.
 
  * Sets the sine wave value every timer match interrupt.
