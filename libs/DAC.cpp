@@ -100,19 +100,19 @@ void DAC::setVoltage(float voltage) {
 void DAC::sine(uint32_t frequency) {
 
 	delete timer;
-	CTimer dacTimer(1);					// Reserves a timer for the sine wave
-	dacTimer.attachInterrupt(sine_wave);		// Creates an interrupt for every amtch of the timer
+	timer = new CTimer(1);					// Reserves a timer for the sine wave
+	timer->attachInterrupt(sine_wave);		// Creates an interrupt for every amtch of the timer
 
 	getSineWaveValues(frequency);				// Calculate the necessary points of the sine wave
 
-	dacTimer.setFrequency(frequency * sineWave.max_values);		// Have a faster timer frequency
+	timer->setFrequency(frequency * sineWave.max_values);		// Have a faster timer frequency
 
 	sineWave.frequency = frequency;
 	sineWave.dac = base_dac;
 	sineWave.counter = 0;
 
-	timer = &dacTimer;
-	dacTimer.start();
+	timer->reset();
+	timer->start();
 }
 
 /*!
@@ -128,19 +128,19 @@ void DAC::sine(uint32_t frequency) {
 void DAC::triangular(uint32_t frequency) {
 
 	delete timer;
-	CTimer dacTimer(1);					// Reserves a timer for the triangular wave
-	dacTimer.attachInterrupt(triangular_wave);	// Creates an interrupt for every match of the timer
+	timer = new CTimer(1);						// Reserves a timer for the triangular wave
+	timer->attachInterrupt(triangular_wave);	// Creates an interrupt for every match of the timer
 
 	getTriangularValues(frequency);				// Calculate necessary points of the triangular wave
 
-	dacTimer.setFrequency(frequency * triangularWave.max_values);		// Have a faster timer frequency
+	timer->setFrequency(frequency * triangularWave.max_values);		// Have a faster timer frequency
 
 	triangularWave.frequency = frequency;
 	triangularWave.dac = base_dac;
 	triangularWave.counter = 0;
 
-	timer = &dacTimer;
-	dacTimer.start();
+	timer->reset();
+	timer->start();
 }
 
 /*!
