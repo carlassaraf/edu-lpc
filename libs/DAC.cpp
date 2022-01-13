@@ -99,6 +99,7 @@ void DAC::setVoltage(float voltage) {
  */
 void DAC::sine(uint32_t frequency) {
 
+	delete timer;
 	CTimer dacTimer(1);					// Reserves a timer for the sine wave
 	dacTimer.attachInterrupt(sine_wave);		// Creates an interrupt for every amtch of the timer
 
@@ -110,6 +111,7 @@ void DAC::sine(uint32_t frequency) {
 	sineWave.dac = base_dac;
 	sineWave.counter = 0;
 
+	timer = &dacTimer;
 	dacTimer.start();
 }
 
@@ -125,6 +127,7 @@ void DAC::sine(uint32_t frequency) {
  */
 void DAC::triangular(uint32_t frequency) {
 
+	delete timer;
 	CTimer dacTimer(1);					// Reserves a timer for the triangular wave
 	dacTimer.attachInterrupt(triangular_wave);	// Creates an interrupt for every match of the timer
 
@@ -136,6 +139,7 @@ void DAC::triangular(uint32_t frequency) {
 	triangularWave.dac = base_dac;
 	triangularWave.counter = 0;
 
+	timer = &dacTimer;
 	dacTimer.start();
 }
 

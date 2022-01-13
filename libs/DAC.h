@@ -45,6 +45,7 @@ class DAC {
 
 	private:
 		DAC_Type *base_dac;
+		CTimer *timer;
 
 		void getSineWaveValues(uint32_t frequency);
 		void getTriangularValues(uint32_t frequency);
