@@ -22,6 +22,7 @@
 #define DATA1_INDEX		2
 #define DATA2_INDEX		3
 #define DATA3_INDEX		4
+#define DATA4_INDEX		5
 
 #define GPIO_START_INDEX	16
 #define ADC_LAST_CHANNEL	10
@@ -42,9 +43,7 @@ typedef enum {
 	kcmd_dac_sine = 0x0a,
 	kcmd_dac_triangular = 0x0b,
 	kcmd_dac_wave = 0x0c,
-	kcmd_pwm_config = 0x0d,
-	kcmd_pwm_frequency = 0x0e,
-	kcmd_pwm_duty = 0x0f
+	kcmd_pwm_config = 0x0d
 } cmd_codes;
 
 typedef enum {
@@ -72,6 +71,7 @@ void cmd_lm35(cmd_codes cmd, float temp);
 void cmd_dac_sine(uint8_t channel, uint32_t frequency);
 void cmd_dac_triangular(uint8_t channel, uint32_t frequency);
 void cmd_dac_wave(uint8_t channel, bool enable);
+void cmd_pwm_config(uint32_t channel, uint32_t frequency, uint32_t duty);
 uint8_t calculate_checksum(uint8_t *data, uint8_t size);
 void dataHandler(uint8_t *data, uint8_t size);
 

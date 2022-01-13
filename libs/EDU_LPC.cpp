@@ -36,6 +36,7 @@ void comHandler(void) {
 
 		uint8_t checksum = calculate_checksum(rxBuffer, rxIndex - 1);
 		uint16_t val;
+		uint32_t freq, duty;
 
 		if(checksum == rxBuffer[rxIndex - 1]) {
 
@@ -76,17 +77,22 @@ void comHandler(void) {
 
 				case kcmd_dac_sine:
 					val = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
-					cmd_dac_sine(rxBuffer[DATA1_INDEX], val);
+					cmd_dac_sine(rxBuffer[DATA1_INDEX], freq);
 					break;
 
 				case kcmd_dac_triangular:
 					val = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
-					cmd_dac_triangular(rxBuffer[DATA1_INDEX], val);
+					cmd_dac_triangular(rxBuffer[DATA1_INDEX], freq);
 					break;
 
 				case kcmd_dac_wave:
-					bool enable = (bool)rxBuffer[DATA2_INDEX];
-					cmd_dac_wave(rxBuffer[DATA1_INDEX], enable);
+					cmd_dac_wave(rxBuffer[DATA1_INDEX], (bool)rxBuffer[DATA2_INDEX]);
+					break;
+
+				case kcmd_pwm_config:
+					freq = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
+					duty = rxBuffer[DATA4_INDEX];
+					cmd_pwm_config(rxBuffer[DATA1_INDEX], freq, duty);
 					break;
 			}
 		}
@@ -247,6 +253,17 @@ void cmd_dac_wave(uint8_t channel, bool enable) {
 	else {
 		dac[channel]->getTimer()->stop();
 	}
+}
+
+void cmd_pwm_config(uint32_t channel, uint32_t frequency, uint32_t duty) {
+
+	if(pwm[channel] == nullptr) {
+		return;
+	}
+
+	if(pwm[channel]->getFrequency() != frequency) { pwm[channel]->setFrequency(frequency); }
+
+	if(pwm[channel]->getDuty() != duty) { pwm[channel]->setDuty(duty); }
 }
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t size) {
