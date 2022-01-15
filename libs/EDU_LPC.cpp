@@ -168,7 +168,7 @@ void cmd_config(uint8_t pin, uint8_t function) {
 		}
 		
 		// Allocate new memory
-		pwm[index] = new PWM(index, 1000, pin);		
+		pwm[index] = new PWM(pin);		
 		return;
 	}
 }
@@ -261,7 +261,14 @@ void cmd_pwm_config(uint32_t channel, uint32_t frequency, uint32_t duty) {
 		return;
 	}
 
-	if(pwm[channel]->getFrequency() != frequency) { pwm[channel]->setFrequency(frequency); }
+	if(pwm[channel]->getFrequency() != frequency) {
+
+		int i = 0;
+		while(pwm[i] != nullptr) {
+			pwm[i]->setFrequency(frequency);
+			i++;
+		}
+	}
 
 	if(pwm[channel]->getDuty() != duty) { pwm[channel]->setDuty(duty); }
 }
