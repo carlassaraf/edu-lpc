@@ -19,7 +19,7 @@ class PWM {
 
 	public:
 
-		PWM(uint32_t pwm_output, uint32_t frequency, uint32_t outputPin, uint32_t duty = 50);
+		PWM(uint32_t outputPin, uint32_t frequency = 1000, uint32_t duty = 50);
 		void setDuty(uint32_t duty);
 		uint32_t getDuty(void);
 		void setFrequency(uint32_t frequency);
@@ -29,11 +29,16 @@ class PWM {
 
 	private:
 
-		sctimer_pwm_signal_param_t pwmParam;
-		uint32_t pwmFrequency;
-		uint32_t event;
+		sctimer_pwm_signal_param_t pwmParams;
 
-		void init(uint32_t frequency, bool logic);
+		uint32_t pwmFrequency;
+		uint32_t periodEvent;
+		uint32_t pulseEvent;
+
+		SCTimer *timer;
+
+		void init(uint32_t frequency);
+		uint32_t createEvent(uint32_t matchValue, sctimer_counter_t whichCounter);
 };
 
 #endif /* PWM_H_ */
