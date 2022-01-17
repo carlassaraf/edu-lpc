@@ -42,6 +42,8 @@ DAC::DAC(uint32_t dac_channel) {
 	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;					// Enable clock for switch matrix (SWM)
 	SWM0->PINENABLE0 &= ~(1 << (dac_channel + SWM_PINENABLE0_DACOUT0_SHIFT));	// Enable DAC function on SWM
 	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);				// Disable SWM clock
+
+	timer = new CTimer(1);		// Reserves a timer for the wave generation
 }
 
 /*!
@@ -99,8 +101,6 @@ void DAC::setVoltage(float voltage) {
  */
 void DAC::sine(uint32_t frequency) {
 
-	delete timer;
-	timer = new CTimer(1);					// Reserves a timer for the sine wave
 	timer->attachInterrupt(sine_wave);		// Creates an interrupt for every amtch of the timer
 
 	getSineWaveValues(frequency);				// Calculate the necessary points of the sine wave
@@ -127,8 +127,6 @@ void DAC::sine(uint32_t frequency) {
  */
 void DAC::triangular(uint32_t frequency) {
 
-	delete timer;
-	timer = new CTimer(1);						// Reserves a timer for the triangular wave
 	timer->attachInterrupt(triangular_wave);	// Creates an interrupt for every match of the timer
 
 	getTriangularValues(frequency);				// Calculate necessary points of the triangular wave
