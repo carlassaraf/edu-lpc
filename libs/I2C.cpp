@@ -111,6 +111,19 @@ status_t I2C::read(uint8_t address, uint8_t *buff, uint32_t size) {
 }
 
 /*!
+ * @brief I2C getI2C method.
+
+ * Returns the I2C register associated with the instance.
+ *
+ * @param None.
+ *
+ * @retval I2C peripherial pointer.
+ */
+I2C_Type* I2C::getI2C(void) {
+	return i2c;
+}
+
+/*!
  * @brief I2C private init method.
 
  * Deals with the initialization of the I2C.

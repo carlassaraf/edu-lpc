@@ -24,6 +24,7 @@ class I2C {
 		void assignPins(uint32_t sda, uint32_t scl);
 		status_t write(uint8_t address, uint8_t *buff, uint32_t size);
 		status_t read(uint8_t address, uint8_t *buff, uint32_t size);
+		I2C_Type* getI2C(void)
 
 	private:
 
