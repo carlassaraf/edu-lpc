@@ -43,7 +43,8 @@ typedef enum {
 	kcmd_dac_sine = 0x0a,
 	kcmd_dac_triangular = 0x0b,
 	kcmd_dac_wave = 0x0c,
-	kcmd_pwm_config = 0x0d
+	kcmd_pwm_config = 0x0d,
+	kcmd_bmp_read = 0x0e
 } cmd_codes;
 
 typedef enum {
@@ -72,6 +73,7 @@ void cmd_dac_sine(uint8_t channel, uint32_t frequency);
 void cmd_dac_triangular(uint8_t channel, uint32_t frequency);
 void cmd_dac_wave(uint8_t channel, bool enable);
 void cmd_pwm_config(uint32_t channel, uint32_t frequency, uint32_t duty);
+void cmd_bmp_read(void);
 uint8_t calculate_checksum(uint8_t *data, uint8_t size);
 void dataHandler(uint8_t *data, uint8_t size);
 

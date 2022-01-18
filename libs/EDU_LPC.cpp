@@ -22,6 +22,7 @@ PWM *pwm[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nu
 
 LM35 lm(1);
 DAC analogOut(1);
+BMP180 bmp;
 
 void init(void) {
 
@@ -93,6 +94,10 @@ void com_handler(void) {
 					freq = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
 					duty = rxBuffer[DATA4_INDEX];
 					cmd_pwm_config(rxBuffer[DATA1_INDEX], freq, duty);
+					break;
+
+				case kcmd_bmp_read:
+					cmd_bmp_read();
 					break;
 			}
 		}
@@ -271,6 +276,30 @@ void cmd_pwm_config(uint32_t channel, uint32_t frequency, uint32_t duty) {
 	}
 
 	if(pwm[channel]->getDuty() != duty) { pwm[channel]->setDuty(duty); }
+}
+
+void cmd_bmp_read(void) {
+
+	bmp.read();
+	float temp = bmp.getTemperature();
+	int32_t pres = bmp.getPressure();
+
+	uint8_t presHigh = (pres & 0xff0000) >> 16;
+	uint8_t presMid = (pres & 0xff00) >> 8;
+	uint8_t presLow = pres & 0xff;
+
+	uint8_t tempHigh = (uint8_t)temp;
+	uint8_t tempLow = (temp - tempHigh) * 100;
+
+	uint8_t buff[] = {
+		kcmd_bmp_read,
+		presHigh,
+		presMid,
+		presLow,
+		tempHigh,
+		tempLow
+	};
+	dataHandler(buff, 6);
 }
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t size) {
