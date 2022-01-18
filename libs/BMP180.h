@@ -78,11 +78,9 @@ typedef enum Bmp180StatusCode {
 
 class BMP180 {
 
-	I2C i2c;
-
 	public:
 
-	  BMP180(uint32_t i2cn = 0, uint8_t mode = BMP180_ULTRAHIGHRES) : i2c(i2cn, 3000000U) { calibrate(i2cn, mode); };
+	  BMP180(uint32_t i2cn = 0, uint8_t mode = BMP180_ULTRAHIGHRES);
 	  void read(void);
 	  float getTemperature(void);
 	  int32_t getPressure(void);
@@ -90,6 +88,11 @@ class BMP180 {
 
 
 	private:
+
+	  I2C_Type *i2c;		  
+	  uint8_t oversampling;
+	  bmp180_calibrationData_t bmp180calibrationData;
+	  bmp180_data_t bmp180data;
 
 	  bool calibrate(uint32_t i2c = 0, uint8_t mode = BMP180_ULTRAHIGHRES);
 	  uint16_t readRawTemperature(void);
@@ -102,11 +105,7 @@ class BMP180 {
 
 	  uint8_t read8(uint8_t reg);
 	  uint16_t read16(uint8_t reg);
-	  status_t write8(uint8_t reg, uint8_t data);
-
-	  uint8_t oversampling;
-	  bmp180_calibrationData_t bmp180calibrationData;
-	  bmp180_data_t bmp180data;
+	  void write8(uint8_t reg, uint8_t data);
 };
 
 #endif /* BMP180_H_ */

@@ -8,6 +8,36 @@
 #include <BMP180.h>
 
 /*!
+ * @brief BMP180 constructor.
+
+ * Creates a BMP object and does the calibration.
+ *
+ * @param i2cn index of the I2C peripherial to be used.
+ * Defaults to 0;
+ * @param mode type of sampling. Defautls to BMP180_ULTRAHIGHRES.
+ *
+ * @retval None.
+ */
+BMP180::BMP180(uint32_t i2cn, uint8_t mode) {
+
+	if (mode > BMP180_ULTRAHIGHRES) {
+		mode = BMP180_ULTRAHIGHRES;
+	}
+
+	/* Creates I2C object to initialize peripherial */
+	I2C *i2cobj = new I2C(i2cn, 3000000U);
+
+	/* Gets the I2C peripherial pointer */
+	i2c = i2cobj->getI2C();
+
+	/* Free memory */
+	delete i2cobj;
+
+	oversampling = mode;
+	calibrate();
+}
+
+/*!
  * @brief BMP180 read method.
 
  * Reads temperature and pressure and calculates
@@ -273,13 +303,23 @@ uint8_t BMP180::read8(uint8_t reg) {
 
 	uint8_t ret;
 
-	if (kStatus_Success == i2c.write(BMP180_ADDRESS, &reg, 1)) {
+	/* Write Address and RW bit to data register */
+	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Write & 1u);
+	/* Start the transfer */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	I2C_MasterWriteBlocking(i2c, &reg, 1, kI2C_TransferDefaultFlag);
+	/* Stop transfer */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
 
-		if (kStatus_Success == i2c.read(BMP180_ADDRESS, &ret, 1)) {
-			return ret;
-		}
-	}
-	return 0x00;
+	/* Write Address and RW bit to data register */
+	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Read & 1u);
+	/* Start the transfer */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	I2C_MasterReadBlocking(i2c, &ret, 1, kI2C_TransferDefaultFlag);
+	/* Stop transfer */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
+
+	return ret;
 }
 
 /*!
@@ -294,16 +334,24 @@ uint8_t BMP180::read8(uint8_t reg) {
 uint16_t BMP180::read16(uint8_t reg) {
 
 	uint8_t retbuf[2];
-	uint16_t ret;
 
-	if (kStatus_Success == i2c.write(BMP180_ADDRESS, &reg, 1)) {
+	/* Write Address and RW bit to data register */
+	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Write & 1u);
+	/* Start the transfer */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	I2C_MasterWriteBlocking(i2c, &reg, 1, kI2C_TransferDefaultFlag);
+	/* Stop transfer */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
 
-		if (kStatus_Success == i2c.read(BMP180_ADDRESS, retbuf, 2)) {
-			ret = retbuf[1] | (retbuf[0] << 8);
-			return ret;
-		}
-	}
-	return 0x0000;
+	/* Write Address and RW bit to data register */
+	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Read & 1u);
+	/* Start the transfer */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	I2C_MasterReadBlocking(i2c, retbuf, 2, kI2C_TransferDefaultFlag);
+	/* Stop transfer */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
+
+	return (retbuf[0] << 8) | retbuf[1];
 }
 
 /*!
@@ -318,5 +366,13 @@ uint16_t BMP180::read16(uint8_t reg) {
  */
 status_t BMP180::write8(uint8_t reg, uint8_t data) {
 
-	return i2c.write(reg, &data, 1);
+	uint8_t buf[] = { reg, data };
+	/* Write Address and RW bit to data register */
+	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Write & 1u);
+	/* Start the transfer */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	/* Write register */
+	I2C_MasterWriteBlocking(i2c, buf, 2, kI2C_TransferDefaultFlag);
+	/* initiate NAK and stop */
+	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
 }
