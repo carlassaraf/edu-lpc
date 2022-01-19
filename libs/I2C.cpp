@@ -146,7 +146,7 @@ void I2C::init(uint32_t i2cn, uint32_t frequency) {
 	}
 
 	else if (i2cx > 0) {
-		assignPins(0, 1);
+		assignPins(1, 0);
 	}
 
 	i2c_master_config_t masterConfig;
