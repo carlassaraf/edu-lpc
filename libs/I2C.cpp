@@ -151,8 +151,8 @@ void I2C::init(uint32_t i2cn, uint32_t frequency) {
 
 	i2c_master_config_t masterConfig;
 	I2C_MasterGetDefaultConfig(&masterConfig);
-	masterConfig.baudRate_Bps = 400000;
-	I2C_MasterInit(i2c, &masterConfig, frequency);
+	masterConfig.baudRate_Bps = frequency;
+	I2C_MasterInit(i2c, &masterConfig, 12000000U);
 }
 
 /*!
