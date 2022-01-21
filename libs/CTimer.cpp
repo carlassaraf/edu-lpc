@@ -36,45 +36,6 @@ CTimer::CTimer(uint32_t match_channel) {
 }
 
 /*!
- * @brief CTimer start method.
-
- * Starts the counter.
- *
- * @param None.
- *
- * @retval None.
- */
-void CTimer::start(void) {
-	CTIMER_StartTimer(CTIMER0);
-}
-
-/*!
- * @brief CTimer stop method.
-
- * Stops the counter.
- *
- * @param None.
- *
- * @retval None.
- */
-void CTimer::stop(void) {
-	CTIMER_StopTimer(CTIMER0);
-}
-
-/*!
- * @brief CTimer stop method.
-
- * Resets the counter.
- *
- * @param None.
- *
- * @retval None.
- */
-void CTimer::reset(void) {
-	CTIMER_Reset(CTIMER0);
-}
-
-/*!
  * @brief CTimer setOutputPin method.
 
  * Configures a pin as an output for the match event.
@@ -98,77 +59,6 @@ void CTimer::setOutputPin(uint32_t match_output_pin) {
 }
 
 /*!
- * @brief CTimer setMatch method.
-
- * Sets a new value to the counter.
- *
- * @param match_value counter value.
- *
- * @retval None.
- */
-void CTimer::setMatch(uint32_t match_value) {
-	/* Get the CTIMER running frequency */
-	CTIMER0->MR[settings.match_channel] = match_value;
-	/* Set match value */
-	CTIMER0->TC = 0;
-}
-
-/*!
- * @brief CTimer setOutputNoAction method.
-
- * Configures the output pin behavior to none.
- *
- * @param None.
- *
- * @retval None.
- */
-void CTimer::setOutputNoAction(void) {
-	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << settings.match_channel);								// Clear previous state
-}
-
-/*!
- * @brief CTimer setOutputToggle method.
-
- * Configures the output pin behavior to toggle.
- *
- * @param None.
- *
- * @retval None.
- */
-void CTimer::setOutputToggle(void) {
-	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << settings.match_channel);								// Clear previous state
-	CTIMER0->EMR |= kCTIMER_Output_Toggle << (settings.match_channel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
-}
-
-/*!
- * @brief CTimer setOutputClear method.
-
- * Configures the output pin behavior to clear.
- *
- * @param None.
- *
- * @retval None.
- */
-void CTimer::setOutputClear(void) {
-	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << settings.match_channel);								// Clear previous state
-	CTIMER0->EMR |= kCTIMER_Output_Clear << (settings.match_channel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
-}
-
-/*!
- * @brief CTimer setOutputSet method.
-
- * Configures the output pin behavior to set.
- *
- * @param None.
- *
- * @retval None.
- */
-void CTimer::setOutputSet(void) {
-	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << settings.match_channel);							// Clear previous state
-	CTIMER0->EMR |= kCTIMER_Output_Set << (settings.match_channel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
-}
-
-/*!
  * @brief CTimer setFrequency method.
 
  * Sets the match register to trigger the event with
@@ -181,12 +71,8 @@ void CTimer::setOutputSet(void) {
 void CTimer::setFrequency(uint32_t freq) {
 	/* Get the CTIMER running frequency */
 	uint32_t ctimer_freq = CLOCK_GetFreq(kCLOCK_CoreSysClk) / (CTIMER0->PR + 1);
-	/* Calculate match value */
-	uint32_t match = ctimer_freq / frequency;
-	/* Update match value in settings */
-	settings.match_config.matchValue = match;
 	/* Set match value */
-	setMatch(match);
+	setMatch(ctimer_freq / frequency);
 }
 
 /*!
