@@ -5,10 +5,10 @@
  *      Author: fabri
  */
 
-#include "Timer.h"
+#include "CTimer.h"
 
-/*  CTimer IRQ handler pointer  */
-/*  Match0, Match1, Match2, Match3, Capture0, Capture1, Capture2, Capture3  */
+/* CTimer IRQ handler pointer */
+/* Match0, Match1, Match2, Match3, Capture0, Capture1, Capture2, Capture3 */
 ctimer_callback_t ctimer_callbacks[] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 /*!
@@ -16,34 +16,23 @@ ctimer_callback_t ctimer_callbacks[] = { NULL, NULL, NULL, NULL, NULL, NULL, NUL
 
  * Creates a CTimer object.
  *
- * @param match_channel to use (0-3).
+ * @param match_channel to use (0-3). Defaults to 0.
  *
  * @retval None.
  */
 CTimer::CTimer(uint32_t match_channel) {
-
-	matchChannel = match_channel;
-
-	SYSCON->SYSAHBCLKCTRL0 |= SYSCON_SYSAHBCLKCTRL0_CTIMER_MASK;	// Enable CTIMER CLK
-
-	SYSCON->PRESETCTRL0 &= ~(SYSCON_PRESETCTRL0_CTIMER_RST_N_MASK);	// Reset the CTIMER
-	SYSCON->PRESETCTRL0 |= SYSCON_PRESETCTRL0_CTIMER_RST_N_MASK;	// Clear the reset
-
-	ctimer_config_t ctimer_config;
-
-    CTIMER_GetDefaultConfig(&ctimer_config);
-	CTIMER_Init(CTIMER0, &ctimer_config);
-
-	ctimer_match_config_t match_config;		// Default Match Configuration
-
-    match_config.enableCounterReset = true;
-    match_config.enableCounterStop  = false;
-    match_config.matchValue         = 0xffffffff;
-    match_config.outControl         = kCTIMER_Output_Toggle;
-    match_config.outPinInitState    = true;
-    match_config.enableInterrupt    = false;
-
-    CTIMER_SetupMatch(CTIMER0, (ctimer_match_t)match_channel, &match_config);
+	/* Override match channel */
+	settings.match_channel = (ctimer_match_t)match_channel;
+	/* Enable CTIMER CLK */
+	SYSCON->SYSAHBCLKCTRL0 |= SYSCON_SYSAHBCLKCTRL0_CTIMER_MASK;
+	/* Reset the CTIMER */
+	SYSCON->PRESETCTRL0 &= ~(SYSCON_PRESETCTRL0_CTIMER_RST_N_MASK);
+	/* Clear the reset */
+	SYSCON->PRESETCTRL0 |= SYSCON_PRESETCTRL0_CTIMER_RST_N_MASK;
+	/* CTimer initialization */
+	CTIMER_Init(CTIMER0, &settings.ctimer_config);
+	/* CTimer match setup */
+    CTIMER_SetupMatch(CTIMER0, settings.match_channel, &settings.match_config);
 }
 
 /*!
@@ -95,17 +84,17 @@ void CTimer::reset(void) {
  * @retval None.
  */
 void CTimer::setOutputPin(uint32_t match_output_pin) {
-
-	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;		// Enable Switch Matrix
-
-	if (matchChannel < 4) {
-		SWM0->PINASSIGN_DATA[13] = match_output_pin << (SWM_PINASSIGN13_T0_MAT0_SHIFT + matchChannel * 8U);
+	/* Enable switch matrix */
+	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;
+	/* Connect pin to match output channel */
+	if (settings.match_channel < 4) {
+		SWM0->PINASSIGN_DATA[13] = match_output_pin << (SWM_PINASSIGN13_T0_MAT0_SHIFT + settings.match_channel * 8U);
 	}
-	else if(matchChannel == 3) {
+	else if(settings.match_channel == 3) {
 		SWM0->PINASSIGN_DATA[14] = match_output_pin;
 	}
-
-	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);	// Enable Switch Matrix
+	/* Disable switch matric */
+	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);
 }
 
 /*!
@@ -118,8 +107,9 @@ void CTimer::setOutputPin(uint32_t match_output_pin) {
  * @retval None.
  */
 void CTimer::setMatch(uint32_t match_value) {
-
-	CTIMER0->MR[matchChannel] = match_value;
+	/* Get the CTIMER running frequency */
+	CTIMER0->MR[settings.match_channel] = match_value;
+	/* Set match value */
 	CTIMER0->TC = 0;
 }
 
@@ -133,7 +123,7 @@ void CTimer::setMatch(uint32_t match_value) {
  * @retval None.
  */
 void CTimer::setOutputNoAction(void) {
-	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << matchChannel);								// Clear previous state
+	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << settings.match_channel);								// Clear previous state
 }
 
 /*!
@@ -146,8 +136,8 @@ void CTimer::setOutputNoAction(void) {
  * @retval None.
  */
 void CTimer::setOutputToggle(void) {
-	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << matchChannel);								// Clear previous state
-	CTIMER0->EMR |= kCTIMER_Output_Toggle << (matchChannel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
+	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << settings.match_channel);								// Clear previous state
+	CTIMER0->EMR |= kCTIMER_Output_Toggle << (settings.match_channel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
 }
 
 /*!
@@ -160,8 +150,8 @@ void CTimer::setOutputToggle(void) {
  * @retval None.
  */
 void CTimer::setOutputClear(void) {
-	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << matchChannel);								// Clear previous state
-	CTIMER0->EMR |= kCTIMER_Output_Clear << (matchChannel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
+	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << settings.match_channel);								// Clear previous state
+	CTIMER0->EMR |= kCTIMER_Output_Clear << (settings.match_channel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
 }
 
 /*!
@@ -174,8 +164,8 @@ void CTimer::setOutputClear(void) {
  * @retval None.
  */
 void CTimer::setOutputSet(void) {
-	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << matchChannel);							// Clear previous state
-	CTIMER0->EMR |= kCTIMER_Output_Set << (matchChannel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
+	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << settings.match_channel);							// Clear previous state
+	CTIMER0->EMR |= kCTIMER_Output_Set << (settings.match_channel * 2U + CTIMER_EMR_EMC0_SHIFT);	// Set functionality
 }
 
 /*!
@@ -189,9 +179,14 @@ void CTimer::setOutputSet(void) {
  * @retval None.
  */
 void CTimer::setFrequency(uint32_t freq) {
-
-	uint32_t ctimer_freq = CLOCK_GetFreq(kCLOCK_CoreSysClk) / (CTIMER0->PR + 1);	// Get the CTIMER running frequency
-	setMatch(ctimer_freq / freq);
+	/* Get the CTIMER running frequency */
+	uint32_t ctimer_freq = CLOCK_GetFreq(kCLOCK_CoreSysClk) / (CTIMER0->PR + 1);
+	/* Calculate match value */
+	uint32_t match = ctimer_freq / frequency;
+	/* Update match value in settings */
+	settings.match_config.matchValue = match;
+	/* Set match value */
+	setMatch(match);
 }
 
 /*!
@@ -204,9 +199,13 @@ void CTimer::setFrequency(uint32_t freq) {
  * @retval None.
  */
 void CTimer::attachInterrupt(void (*f)(uint32_t)) {
-
-	CTIMER0->MCR |= 1 << (matchChannel * 3U);											// Enable appropiate interrupt
+	/* Update settings */
+	settings.match_config.enableInterrupt = true;
+	/* Enable appropriate interrupt */
+	CTIMER0->MCR |= 1 << (settings.match_channel * 3U);
 	(void)EnableIRQ(CTIMER_IRQS);
-	ctimer_callbacks[matchChannel] = f;													// Add callback function to the callback array
-	CTIMER_RegisterCallBack(CTIMER0, &ctimer_callbacks[0], kCTIMER_MultipleCallback);	// Register the callback
+	/* Add callback function to the callback array */
+	ctimer_callbacks[settings.match_channel] = f;
+	/* Register the callback */
+	CTIMER_RegisterCallBack(CTIMER0, &ctimer_callbacks[0], kCTIMER_MultipleCallback);
 }
