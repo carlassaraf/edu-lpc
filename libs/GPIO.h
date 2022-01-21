@@ -15,7 +15,7 @@
 #include "fsl_syscon.h"
 #include "fsl_syscon_connections.h"
 
-/*  GPIO Macros  */
+/* GPIO Macros */
 
 #define getPORT(pin)				(pin < 32)? 0 : 1
 #define getSYSCON_CONNECTION(pin)	(syscon_connection_t)(pin + (PINTSEL_ID << SYSCON_SHIFT))
@@ -28,7 +28,7 @@
 #define LOW		0
 #define HIGH	1
 
-/*  PINT Modes  */
+/* PINT Modes */
 
 #define PINT_NONE			kPINT_PinIntEnableNone
 #define PINT_RISE_EDGE		kPINT_PinIntEnableRiseEdge
@@ -47,7 +47,7 @@ static const gpio_pin_config_t configInput = {
 		0,
 };
 
-/*  Class Definition  */
+/* Class Definition */
 
 class Pin {
 
@@ -70,7 +70,79 @@ class Pin {
 		void init(uint32_t pin_index, const uint32_t mode);
 };
 
-/*  Extra function prototypes  */
+/* Inline class methods */
+
+/*!
+ * @brief Pin read method.
+
+ * Returns the digital value of the pin.
+ *
+ * @param None.
+ *
+ * @retval pin value.
+ */
+inline uint32_t Pin::read(void) {
+
+	return GPIO->B[port][pin];
+}
+
+/*!
+ * @brief Pin write method.
+
+ * Writes a desired value in the output pin.
+ *
+ * @param value to be written in the output pin.
+ *
+ * @retval None.
+ */
+inline void Pin::write(const uint32_t value) {
+
+	GPIO->B[port][pin] = value;
+}
+
+/*!
+ * @brief Pin set method.
+
+ * Sets the output pin.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+inline void Pin::set(void) {
+
+	GPIO->SET[port] |= 1UL << pin;
+}
+
+/*!
+ * @brief Pin clear method.
+
+ * Clears the output pin.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+inline void Pin::clear(void) {
+
+	GPIO->CLR[port] |= 1UL << pin;
+}
+
+/*!
+ * @brief Pin toggle method.
+
+ * Toggles the output pin.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+inline void Pin::toggle(void) {
+
+	GPIO->NOT[port] |= 1UL << pin;
+}
+
+/* Extra function prototypes */
 
 void pint_callback(pint_pin_int_t pintr, uint32_t pmatch_status);
 
