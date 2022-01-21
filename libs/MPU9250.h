@@ -165,8 +165,8 @@
 #define ZA_OFFSET_H        0x7D
 #define ZA_OFFSET_L        0x7E
 
-/* Delay macro */
-#define delay(ms)		for(uint32_t n = 0; n < (uint32_t)ms * 600; n++)
+/* Delay inline function */
+inline void delay(uint32_t ms) { for(uint32_t n = 0; n < ms * 600; n++); }
 
 /* Enum setting classes */
 enum class ACCEL_FS_SEL {
@@ -331,7 +331,7 @@ class MPU9250 {
 		void read(uint8_t address, uint8_t reg, uint8_t *buf, uint8_t size);
 };
 
-/* inline class methods */
+/* Inline class methods */
 
 /*!
  * @brief MPU9250 getAccX method.
