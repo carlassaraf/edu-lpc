@@ -47,49 +47,6 @@ DAC::DAC(uint32_t dac_channel) {
 }
 
 /*!
- * @brief DAC set method.
-
- * Sets a 10 bit value to the DAC.
- *
- * @param value to be set in the CR register.
- *
- * @retval None.
- */
-void DAC::set(uint32_t value) {
-
-	base_dac->CR = (value & 0x3ff) << 6;
-}
-
-/*!
- * @brief DAC get method.
-
- * Gets the 10 bit value from the CR register.
- *
- * @param None..
- *
- * @retval 10 bit value in the CR register.
- */
-uint16_t DAC::get(void) {
-
-	return (base_dac->CR >> 6) & 0x3ff;
-}
-
-/*!
- * @brief DAC setVoltage method.
-
- * Sets a voltage output on the DAC.
- *
- * @param voltage to calculate the value in the CR register.
- *
- * @retval None.
- */
-void DAC::setVoltage(float voltage) {
-
-	uint32_t value = voltage * 0x3ff / 3.3;
-	set(value);
-}
-
-/*!
  * @brief DAC sine method.
 
  * Initializes the necessary registers to create a sine wave.
@@ -214,20 +171,6 @@ void DAC::getTriangularValues(uint32_t frequency) {
 		triangular_wave_values[i] = triangular_wave_values[aux - (i + 1 - aux)];
 		i++;
 	}
-}
-
-/*!
- * @brief DAC getTimer method.
-
- * Returns a pointer to the private CTimer
- * assigned to the DAC object.
- *
- * @param None.
- *
- * @retval pointer to the CTimer.
- */
-CTimer* DAC::getTimer(void) {
-	return timer;
 }
 
 /*!
