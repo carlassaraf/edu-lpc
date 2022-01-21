@@ -7,6 +7,27 @@
 
 #include "MPU9250.h"
 
+/*!
+ * @brief MPU9250 constructor.
+
+ * Creates a MPU9250 object.
+ *
+ * @param address 7-bit address of the MPU device. Defaults to 0x68.
+ * @param i2cn index of the I2C peripherial to be used. Defaults to 1.
+ * @param frequency clock frequency for que SCL pin. Defaults to 400KHz.
+ * @param mpu_setting configuration struct to set the parameters of the MPU.
+ * Defaults to:
+ * - accel_fs_sel = ACCEL_FS_SEL::A16G
+ * - gyro_fs_sel = GYRO_FS_SEL::G2000DPS
+ * - mag_output_bits = MAG_OUTPUT_BITS::M16BITS
+ * - fifo_sample_rate = FIFO_SAMPLE_RATE::SMPL_200HZ
+ * - gyro_fchoice = 0x03
+ * - gyro_dlpf_cfg = GYRO_DLPF_CFG::DLPF_41HZ
+ * - accel_fchoice = 0x01
+ * - accel_dlpf_cfg ACCEL_DLPF_CFG::DLPF_45HZ
+ *
+ * @retval None.
+ */
 MPU9250::MPU9250(uint8_t address, uint32_t i2cn, uint32_t frequency, const MPU9250Setting mpu_setting) {
 
 	mpu_i2c_addr = address;
@@ -32,6 +53,15 @@ MPU9250::MPU9250(uint8_t address, uint32_t i2cn, uint32_t frequency, const MPU92
 	}
 }
 
+/*!
+ * @brief MPU9250 update method.
+
+ * Updates the MPU data values to be used in the main program.
+ *
+ * @param None.
+ *
+ * @retval true if data was read, false if there was an error.
+ */
 bool MPU9250::update(void) {
 
 	/* Check if the device is available */
@@ -79,70 +109,125 @@ bool MPU9250::update(void) {
 	return true;
 }
 
+/*!
+ * @brief MPU9250 getAccX method.
+
+ * Gets the last stored acceleration value of X axis.
+ *
+ * @param None.
+ *
+ * @retval X axis acceleration value.
+ */
 float MPU9250::getAccX(void) { return mpuData.acc[0]; }
 
+/*!
+ * @brief MPU9250 getAccY method.
+
+ * Gets the last stored acceleration value of Y axis.
+ *
+ * @param None.
+ *
+ * @retval Y axis acceleration value.
+ */
 float MPU9250::getAccY(void) { return mpuData.acc[1]; }
 
+/*!
+ * @brief MPU9250 getAccZ method.
+
+ * Gets the last stored acceleration value of Z axis.
+ *
+ * @param None.
+ *
+ * @retval Z axis acceleration value.
+ */
 float MPU9250::getAccZ(void) { return mpuData.acc[2]; }
 
+/*!
+ * @brief MPU9250 getGyroX method.
+
+ * Gets the last stored gyroscope value of X axis.
+ *
+ * @param None.
+ *
+ * @retval X axis gyroscope value.
+ */
 float MPU9250::getGyroX(void) { return mpuData.gy[0]; }
 
+/*!
+ * @brief MPU9250 getGyroY method.
+
+ * Gets the last stored gyroscope value of Y axis.
+ *
+ * @param None.
+ *
+ * @retval Y axis gyroscope value.
+ */
 float MPU9250::getGyroY(void) { return mpuData.gy[1]; }
 
+/*!
+ * @brief MPU9250 getGyroZ method.
+
+ * Gets the last stored gyroscope value of Z axis.
+ *
+ * @param None.
+ *
+ * @retval Z axis gyroscope value.
+ */
 float MPU9250::getGyroZ(void) { return mpuData.gy[2]; }
 
+/*!
+ * @brief MPU9250 getMagX method.
+
+ * Gets the last stored magnetometer value of X axis.
+ *
+ * @param None.
+ *
+ * @retval X axis magnetometer value.
+ */
 float MPU9250::getMagX(void) { return mpuData.mg[0]; }
 
+/*!
+ * @brief MPU9250 getMagY method.
+
+ * Gets the last stored magnetometer value of Y axis.
+ *
+ * @param None.
+ *
+ * @retval Y axis magnetometer value.
+ */
 float MPU9250::getMagY(void) { return mpuData.mg[1]; }
 
+/*!
+ * @brief MPU9250 getMagZ method.
+
+ * Gets the last stored magnetometer value of Z axis.
+ *
+ * @param None.
+ *
+ * @retval Z axis magnetometer value.
+ */
 float MPU9250::getMagZ(void) { return mpuData.mg[2]; }
 
+/*!
+ * @brief MPU9250 getTemperature method.
+
+ * Gets the last stored temperature value.
+ *
+ * @param None.
+ *
+ * @retval temperature value.
+ */
 float MPU9250::getTemperature(void) { return mpuData.temp; }
 
-bool MPU9250::read_mag(int16_t *destination) {
+/*!
+ * @brief MPU9250 isConnectedMPU9250 private method.
 
-	uint8_t st1;
-	/* Wait for magnetometer data ready bit to be set */
-	do { st1 = read(AK8963_ADDRESS, AK8963_ST1); }
-	while(!(st1 & 0x01));
-
-	/* x/y/z magnetometer register data, ST2 register stored here,
-	 * must read ST2 at end of data acquisition */
-	uint8_t raw_data[7];
-	/* Read the six raw data and ST2 registers sequentially into data array */
-	read(AK8963_ADDRESS, AK8963_XOUT_L, raw_data, 7);
-	/* Continuous or external trigger read mode */
-	if (MAG_MODE == 0x02 || MAG_MODE == 0x04 || MAG_MODE == 0x06) {
-		/* Check if data is not skipped */
-		if ((st1 & 0x02) != 0)
-			return false;
-	}
-
-	/* End data read by reading ST2 register */
-	uint8_t st2 = raw_data[6];
-	/* Check if magnetic sensor overflow set, if not then report data */
-	if (!(st2 & 0x08)) {
-		uint8_t j = 0;
-		for(uint8_t i = 0; i < 6; i += 2) {
-			/* Turn the MSB and LSB into a signed 16-bit value */
-			destination[j] = ((int16_t)raw_data[i + 1] << 8) | raw_data[i];
-			j++;
-		}
-		return true;
-	}
-	return false;
-}
-
-int16_t MPU9250::read_temperature_data(void) {
-
-	/* High and low temperature register data stored here */
-	uint8_t raw_data[2];
-	/* Read the two raw data registers sequentially into data array */
-	read(mpu_i2c_addr, TEMP_OUT_H, raw_data, 2);
-	/* Turn the MSB and LSB into a 16-bit value */
-	return ((int16_t)raw_data[0] << 8) | raw_data[1];
-}
-
+ * Checks whether the MPU9250 is connected or not.
+ *
+ * @param None.
+ *
+ * @retval true if it's connected, false if it's not.
+ */
 bool MPU9250::isConnectedMPU9250(void) {
 
 	/* Read and store the result of the WHO AM I register */
@@ -155,6 +240,15 @@ bool MPU9250::isConnectedMPU9250(void) {
 	return b;
 }
 
+/*!
+ * @brief MPU9250 isConnectedAK8963 private method.
+
+ * Checks whether the AK8963 is connected or not.
+ *
+ * @param None.
+ *
+ * @retval true if it's connected, false if it's not.
+ */
 bool MPU9250::isConnectedAK8963(void) {
 
 	/* Read and store the result of the WHO AM I register */
@@ -163,132 +257,30 @@ bool MPU9250::isConnectedAK8963(void) {
 	return (c == AK8963_WHOAMI_DEFAULT_VALUE);
 }
 
+/*!
+ * @brief MPU9250 available private method.
+
+ * Checks whether the MPU9250 is available or not.
+ *
+ * @param None.
+ *
+ * @retval true if it's available, false if it's not.
+ */
 bool MPU9250::available(void) {
 
 	/* Return true if it's connected  */
 	return has_connected && (read(mpu_i2c_addr, INT_STATUS) & 0x01);
 }
 
+/*!
+ * @brief MPU9250 calibrateAccelGyro private method.
 
-void MPU9250::initMPU9250(void) {
-
-	/* Get the accel and gyro resolutions */
-	acc_resolution = get_acc_resolution(setting.accel_fs_sel);
-	gyro_resolution = get_gyro_resolution(setting.gyro_fs_sel);
-	/* Write a one to bit 7 reset bit; toggle reset device */
-	write(mpu_i2c_addr, PWR_MGMT_1, 0x80);
-	delay(100);
-	/* Wake up device. Clear sleep mode bit (6), enable all sensors */
-	write(mpu_i2c_addr, PWR_MGMT_1, 0x00);
-	/* Wait for all registers to reset */
-	delay(100);
-	/* Auto select clock source to be PLL gyroscope reference if ready else */
-	write(mpu_i2c_addr, PWR_MGMT_1, 0x01);
-	delay(200);
-	/* Configure Gyro and Thermometer
-	 * Disable FSYNC and set thermometer and gyro bandwidth to 41 and 42 Hz, respectively;
-	 * minimum delay time for this setting is 5.9 ms, which means sensor fusion update rates cannot
-	 * be higher than 1 / 0.0059 = 170 Hz
-	 * GYRO_DLPF_CFG = bits 2:0 = 011; this limits the sample rate to 1000 Hz for both
-	 * With the MPU9250, it is possible to get gyro sample rates of 32 kHz (!), 8 kHz, or 1 kHz */
-	uint8_t mpu_config = (uint8_t)setting.gyro_dlpf_cfg;
-	write(mpu_i2c_addr, MPU_CONFIG, mpu_config);
-	/* Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
-	 * Use a 200 Hz rate; a rate consistent with the filter update rate */
-	uint8_t sample_rate = (uint8_t)setting.fifo_sample_rate;
-	write(mpu_i2c_addr, SMPLRT_DIV, sample_rate);
-	/* Set gyroscope full scale range. Range selects FS_SEL and GFS_SEL are 0 - 3,
-	 * so 2-bit values are left-shifted into positions 4:3 */
-
-	/* Get current GYRO_CONFIG register value */
-	uint8_t c = read(mpu_i2c_addr, GYRO_CONFIG);
-	/* Clear self-test bits [7:5] */
-	c = c & ~0xE0;
-	/* Clear Fchoice bits [1:0] */
-	c = c & ~0x03;
-	/* Clear GYRO_FS_SEL bits [4:3] */
-	c = c & ~0x18;
-	/* Set full scale range for the gyro */
-	c = c | (uint8_t(setting.gyro_fs_sel) << 3);
-	/* Set Fchoice for the gyro */
-	c = c | (uint8_t(~setting.gyro_fchoice) & 0x03);
-	/* Write new GYRO_CONFIG value to register */
-	write(mpu_i2c_addr, GYRO_CONFIG, c);
-	/* Set accelerometer full-scale range configuration
-	 * Get current ACCEL_CONFIG register value */
-	c = read(mpu_i2c_addr, ACCEL_CONFIG);
-	/* Clear self-test bits [7:5] */
-	c = c & ~0xE0;
-	/* Clear ACCEL_FS_SEL bits [4:3] */
-	c = c & ~0x18;
-	/* Set full scale range for the accelerometer */
-	c = c | (uint8_t(setting.accel_fs_sel) << 3);
-	/* Write new ACCEL_CONFIG register value */
-	write(mpu_i2c_addr, ACCEL_CONFIG, c);
-	/* Set accelerometer sample rate configuration
-	 * It is possible to get a 4 kHz sample rate from
-	 * the accelerometer by choosing 1 for accel_fchoice_b
-	 * bit [3]; in this case the bandwidth is 1.13 kHz */
-
-	/* Get current ACCEL_CONFIG2 register value */
-	c = read(mpu_i2c_addr, ACCEL_CONFIG2);
-	/* Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0]) */
-	c = c & ~0x0F;
-	/* Set accel_fchoice_b to 1 */
-	c = c | (~(setting.accel_fchoice << 3) & 0x08);
-	/* Set accelerometer rate to 1 kHz and bandwidth to 41 Hz */
-	c = c | (uint8_t(setting.accel_dlpf_cfg) & 0x07);
-	/* Write new ACCEL_CONFIG2 register value */
-	write(mpu_i2c_addr, ACCEL_CONFIG2, c);
-	/* The accelerometer, gyro, and thermometer are set to 1 kHz sample rates,
-	 * but all these rates are further reduced by a factor of 5 to 200 Hz because
-	 * of the SMPLRT_DIV setting */
-
-	/* Configure Interrupts and Bypass Enable
-	 * Set interrupt pin active high, push-pull, hold interrupt pin level HIGH
-	 * until interrupt cleared, clear on read of INT_STATUS, and enable I2C_BYPASS_EN
-	 * so additional chips can join the I2C bus and all can be controlled by the LPC as master */
-	write(mpu_i2c_addr, INT_PIN_CFG, 0x22);
-	/* Enable data ready (bit 0) interrupt */
-	write(mpu_i2c_addr, INT_ENABLE, 0x01);
-	delay(100);
-}
-
-void MPU9250::initAK8963(void) {
-
-	/* First extract the factory calibration for
-	 * each magnetometer axis stored hete*/
-	uint8_t raw_data[3];
-	/* Power down magnetometer */
-	write(AK8963_ADDRESS, AK8963_CNTL, 0x00);
-	delay(10);
-	/* Enter Fuse ROM access mode */
-	write(AK8963_ADDRESS, AK8963_CNTL, 0x0F);
-	delay(10);
-	/* Read the x-, y-, and z-axis calibration values */
-	read(AK8963_ADDRESS, AK8963_ASAX, raw_data, 3);
-
-	for(uint8_t i = 0; i < 3; i++) {
-		/* Return x-axis sensitivity adjustment values, etc. */
-		mag_bias_factory[i] = (float)(raw_data[i] - 128) / 256. + 1.;
-	}
-	/* Power down magnetometer */
-	write(AK8963_ADDRESS, AK8963_CNTL, 0x00);
-	delay(10);
-	/* Configure the magnetometer for continuous read and highest resolution
-	 * set Mscale bit 4 to 1 (0) to enable 16 (14) bit resolution in CNTL register,
-	 * and enable continuous mode data acquisition MAG_MODE (bits [3:0]), 0010 for
-	 * 8 Hz and 0110 for 100 Hz sample rates */
-
-	/* Set magnetometer data resolution and sample ODR */
-	write(AK8963_ADDRESS, AK8963_CNTL, (uint8_t)setting.mag_output_bits << 4 | MAG_MODE);
-	delay(10);
-}
-
-// Function which accumulates gyro and accelerometer data after device initialization. It calculates the average
-// of the at-rest readings and then loads the resulting offsets into accelerometer and gyro bias registers.
-// ACCEL_FS_SEL: 2g (maximum sensitivity)
-// GYRO_FS_SEL: 250dps (maximum sensitivity)
+ * Performs the MPU9250 calibations for the given settings.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
 void MPU9250::calibrateAccelGyro(void) {
 
 	/* Write a one to bit 7 reset bit; toggle reset device */
@@ -432,8 +424,15 @@ void MPU9250::calibrateAccelGyro(void) {
 	delay(1000);
 }
 
+/*!
+ * @brief MPU9250 calibrateMag private method.
 
-// mag calibration is executed in MAG_OUTPUT_BITS: 16BITS
+ * Performs the AK8963 calibations for the given settings.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
 void MPU9250::calibrateMag(void) {
 
 	/* Initialize AK8963 */
@@ -487,12 +486,216 @@ void MPU9250::calibrateMag(void) {
 	}
 }
 
+/*!
+ * @brief MPU9250 initMPU9250 private method.
+
+ * Initializes the MPU9250 with given settings.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+void MPU9250::initMPU9250(void) {
+
+	/* Get the accel and gyro resolutions */
+	acc_resolution = get_acc_resolution(setting.accel_fs_sel);
+	gyro_resolution = get_gyro_resolution(setting.gyro_fs_sel);
+	/* Write a one to bit 7 reset bit; toggle reset device */
+	write(mpu_i2c_addr, PWR_MGMT_1, 0x80);
+	delay(100);
+	/* Wake up device. Clear sleep mode bit (6), enable all sensors */
+	write(mpu_i2c_addr, PWR_MGMT_1, 0x00);
+	/* Wait for all registers to reset */
+	delay(100);
+	/* Auto select clock source to be PLL gyroscope reference if ready else */
+	write(mpu_i2c_addr, PWR_MGMT_1, 0x01);
+	delay(200);
+	/* Configure Gyro and Thermometer
+	 * Disable FSYNC and set thermometer and gyro bandwidth to 41 and 42 Hz, respectively;
+	 * minimum delay time for this setting is 5.9 ms, which means sensor fusion update rates cannot
+	 * be higher than 1 / 0.0059 = 170 Hz
+	 * GYRO_DLPF_CFG = bits 2:0 = 011; this limits the sample rate to 1000 Hz for both
+	 * With the MPU9250, it is possible to get gyro sample rates of 32 kHz (!), 8 kHz, or 1 kHz */
+	uint8_t mpu_config = (uint8_t)setting.gyro_dlpf_cfg;
+	write(mpu_i2c_addr, MPU_CONFIG, mpu_config);
+	/* Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
+	 * Use a 200 Hz rate; a rate consistent with the filter update rate */
+	uint8_t sample_rate = (uint8_t)setting.fifo_sample_rate;
+	write(mpu_i2c_addr, SMPLRT_DIV, sample_rate);
+	/* Set gyroscope full scale range. Range selects FS_SEL and GFS_SEL are 0 - 3,
+	 * so 2-bit values are left-shifted into positions 4:3 */
+
+	/* Get current GYRO_CONFIG register value */
+	uint8_t c = read(mpu_i2c_addr, GYRO_CONFIG);
+	/* Clear self-test bits [7:5] */
+	c = c & ~0xE0;
+	/* Clear Fchoice bits [1:0] */
+	c = c & ~0x03;
+	/* Clear GYRO_FS_SEL bits [4:3] */
+	c = c & ~0x18;
+	/* Set full scale range for the gyro */
+	c = c | (uint8_t(setting.gyro_fs_sel) << 3);
+	/* Set Fchoice for the gyro */
+	c = c | (uint8_t(~setting.gyro_fchoice) & 0x03);
+	/* Write new GYRO_CONFIG value to register */
+	write(mpu_i2c_addr, GYRO_CONFIG, c);
+	/* Set accelerometer full-scale range configuration
+	 * Get current ACCEL_CONFIG register value */
+	c = read(mpu_i2c_addr, ACCEL_CONFIG);
+	/* Clear self-test bits [7:5] */
+	c = c & ~0xE0;
+	/* Clear ACCEL_FS_SEL bits [4:3] */
+	c = c & ~0x18;
+	/* Set full scale range for the accelerometer */
+	c = c | (uint8_t(setting.accel_fs_sel) << 3);
+	/* Write new ACCEL_CONFIG register value */
+	write(mpu_i2c_addr, ACCEL_CONFIG, c);
+	/* Set accelerometer sample rate configuration
+	 * It is possible to get a 4 kHz sample rate from
+	 * the accelerometer by choosing 1 for accel_fchoice_b
+	 * bit [3]; in this case the bandwidth is 1.13 kHz */
+
+	/* Get current ACCEL_CONFIG2 register value */
+	c = read(mpu_i2c_addr, ACCEL_CONFIG2);
+	/* Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0]) */
+	c = c & ~0x0F;
+	/* Set accel_fchoice_b to 1 */
+	c = c | (~(setting.accel_fchoice << 3) & 0x08);
+	/* Set accelerometer rate to 1 kHz and bandwidth to 41 Hz */
+	c = c | (uint8_t(setting.accel_dlpf_cfg) & 0x07);
+	/* Write new ACCEL_CONFIG2 register value */
+	write(mpu_i2c_addr, ACCEL_CONFIG2, c);
+	/* The accelerometer, gyro, and thermometer are set to 1 kHz sample rates,
+	 * but all these rates are further reduced by a factor of 5 to 200 Hz because
+	 * of the SMPLRT_DIV setting */
+
+	/* Configure Interrupts and Bypass Enable
+	 * Set interrupt pin active high, push-pull, hold interrupt pin level HIGH
+	 * until interrupt cleared, clear on read of INT_STATUS, and enable I2C_BYPASS_EN
+	 * so additional chips can join the I2C bus and all can be controlled by the LPC as master */
+	write(mpu_i2c_addr, INT_PIN_CFG, 0x22);
+	/* Enable data ready (bit 0) interrupt */
+	write(mpu_i2c_addr, INT_ENABLE, 0x01);
+	delay(100);
+}
+
+/*!
+ * @brief MPU9250 initAK8963 private method.
+
+ * Initializes the AK8963 with given settings.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+void MPU9250::initAK8963(void) {
+
+	/* First extract the factory calibration for
+	 * each magnetometer axis stored hete*/
+	uint8_t raw_data[3];
+	/* Power down magnetometer */
+	write(AK8963_ADDRESS, AK8963_CNTL, 0x00);
+	delay(10);
+	/* Enter Fuse ROM access mode */
+	write(AK8963_ADDRESS, AK8963_CNTL, 0x0F);
+	delay(10);
+	/* Read the x-, y-, and z-axis calibration values */
+	read(AK8963_ADDRESS, AK8963_ASAX, raw_data, 3);
+
+	for(uint8_t i = 0; i < 3; i++) {
+		/* Return x-axis sensitivity adjustment values, etc. */
+		mag_bias_factory[i] = (float)(raw_data[i] - 128) / 256. + 1.;
+	}
+	/* Power down magnetometer */
+	write(AK8963_ADDRESS, AK8963_CNTL, 0x00);
+	delay(10);
+	/* Configure the magnetometer for continuous read and highest resolution
+	 * set Mscale bit 4 to 1 (0) to enable 16 (14) bit resolution in CNTL register,
+	 * and enable continuous mode data acquisition MAG_MODE (bits [3:0]), 0010 for
+	 * 8 Hz and 0110 for 100 Hz sample rates */
+
+	/* Set magnetometer data resolution and sample ODR */
+	write(AK8963_ADDRESS, AK8963_CNTL, (uint8_t)setting.mag_output_bits << 4 | MAG_MODE);
+	delay(10);
+}
+
+/*!
+ * @brief MPU9250 read_mag private method.
+
+ * Reads the magnetometer.
+ *
+ * @param destination pointer where the result will be stored.
+ *
+ * @retval true if data was read, false if there was an error.
+ */
+bool MPU9250::read_mag(int16_t *destination) {
+
+	uint8_t st1;
+	/* Wait for magnetometer data ready bit to be set */
+	do { st1 = read(AK8963_ADDRESS, AK8963_ST1); }
+	while(!(st1 & 0x01));
+
+	/* x/y/z magnetometer register data, ST2 register stored here,
+	 * must read ST2 at end of data acquisition */
+	uint8_t raw_data[7];
+	/* Read the six raw data and ST2 registers sequentially into data array */
+	read(AK8963_ADDRESS, AK8963_XOUT_L, raw_data, 7);
+	/* Continuous or external trigger read mode */
+	if (MAG_MODE == 0x02 || MAG_MODE == 0x04 || MAG_MODE == 0x06) {
+		/* Check if data is not skipped */
+		if ((st1 & 0x02) != 0)
+			return false;
+	}
+
+	/* End data read by reading ST2 register */
+	uint8_t st2 = raw_data[6];
+	/* Check if magnetic sensor overflow set, if not then report data */
+	if (!(st2 & 0x08)) {
+		uint8_t j = 0;
+		for(uint8_t i = 0; i < 6; i += 2) {
+			/* Turn the MSB and LSB into a signed 16-bit value */
+			destination[j] = ((int16_t)raw_data[i + 1] << 8) | raw_data[i];
+			j++;
+		}
+		return true;
+	}
+	return false;
+}
+
+/*!
+ * @brief MPU9250 read_temperature_data private method.
+
+ * Reads the temperature registers.
+ *
+ * @param None.
+ *
+ * @retval 16-bit temperature raw value.
+ */
+int16_t MPU9250::read_temperature_data(void) {
+
+	/* High and low temperature register data stored here */
+	uint8_t raw_data[2];
+	/* Read the two raw data registers sequentially into data array */
+	read(mpu_i2c_addr, TEMP_OUT_H, raw_data, 2);
+	/* Turn the MSB and LSB into a 16-bit value */
+	return ((int16_t)raw_data[0] << 8) | raw_data[1];
+}
+
+/*!
+ * @brief MPU9250 get_acc_resolution private method.
+
+ * Returns the accelerometer resolution.
+ *
+ * @param accel_af_sel resolution selected in settings.
+ *
+ * @retval Possible accelerometer scales (and their register bit settings) are:
+ * - 2 Gs (00)
+ * - 4 Gs (01)
+ * - 8 Gs (10)
+ * - 16 Gs (11)
+ */
 float MPU9250::get_acc_resolution(const ACCEL_FS_SEL accel_af_sel) {
-	/* Possible accelerometer scales (and their register bit settings) are:
-	 * - 2 Gs (00)
-	 * - 4 Gs (01)
-	 * - 8 Gs (10)
-	 * - 16 Gs (11)  */
+
 	switch (accel_af_sel) {
 		/* Here's a bit of an algorith to calculate
 		 * DPS/(ADC tick) based on that 2-bit value: */
@@ -509,12 +712,21 @@ float MPU9250::get_acc_resolution(const ACCEL_FS_SEL accel_af_sel) {
 	}
 }
 
+/*!
+ * @brief MPU9250 get_gyro_resolution private method.
+
+ * Returns the gyroscope resolution.
+ *
+ * @param gyro_fs_sel resolution selected in settings.
+ *
+ * @retval Possible gyro scales (and their register bit settings) are:
+ * - 250 DPS (00)
+ * - 500 DPS (01)
+ * - 1000 DPS (10)
+ * - 2000 DPS  (11).
+ */
 float MPU9250::get_gyro_resolution(const GYRO_FS_SEL gyro_fs_sel) {
-	/* Possible gyro scales (and their register bit settings) are:
-	 * - 250 DPS (00)
-	 * - 500 DPS (01)
-	 * - 1000 DPS (10)
-	 * - 2000 DPS  (11). */
+
 	switch (gyro_fs_sel) {
 		/* Here's a bit of an algorith to calculate
 		 * DPS/(ADC tick) based on that 2-bit value: */
@@ -531,10 +743,19 @@ float MPU9250::get_gyro_resolution(const GYRO_FS_SEL gyro_fs_sel) {
 	}
 }
 
+/*!
+ * @brief MPU9250 get_mag_resolution private method.
+
+ * Returns the magnetometer resolution.
+ *
+ * @param mag_output_bits resolution selected in settings.
+ *
+ * @retval Possible magnetometer scales (and their register bit settings) are:
+ * - 14 bit resolution (0)
+ * - 16-bit resolution (1)
+ */
 float MPU9250::get_mag_resolution(const MAG_OUTPUT_BITS mag_output_bits) {
-	/* Possible magnetometer scales (and their register bit settings) are:
-	 * - 14 bit resolution (0)
-	 * - 16-bit resolution (1) */
+
 	switch (mag_output_bits) {
 		/* Proper scale to return milliGauss */
 		case MAG_OUTPUT_BITS::M14BITS:
@@ -546,6 +767,17 @@ float MPU9250::get_mag_resolution(const MAG_OUTPUT_BITS mag_output_bits) {
 	}
 }
 
+/*!
+ * @brief Low level MPU9250 write private method.
+
+ * Writes a single byte to the register indicated.
+ *
+ * @param address 7-bit address of the device.
+ * @param reg address of the register to be written.
+ * @param data to be written.
+ *
+ * @retval None.
+ */
 void MPU9250::write(uint8_t address, uint8_t reg, uint8_t data) {
 
 	/* Form a two byte array with the arguments */
@@ -554,6 +786,17 @@ void MPU9250::write(uint8_t address, uint8_t reg, uint8_t data) {
 	write(address, buf, 2);
 }
 
+/*!
+ * @brief Low level MPU9250 write private method.
+
+ * Writes a specified buffer to the device indicated.
+ *
+ * @param address 7-bit address of the device.
+ * @param buf pointer to the data to be sent.
+ * @param size number of bytes to be written.
+ *
+ * @retval None.
+ */
 void MPU9250::write(uint8_t address, uint8_t *buf, uint8_t size) {
 
 	/* Write Address and RW bit to data register */
@@ -566,6 +809,16 @@ void MPU9250::write(uint8_t address, uint8_t *buf, uint8_t size) {
 	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
 }
 
+/*!
+ * @brief Low level MPU9250 read private method.
+
+ * Reads a single byte from the register indicated.
+ *
+ * @param address 7-bit address of the device.
+ * @param reg address of the register to be read.
+ *
+ * @retval data read from the register.
+ */
 uint8_t MPU9250::read(uint8_t address, uint8_t reg) {
 
 	/* Byte to store the read value */
@@ -590,7 +843,18 @@ uint8_t MPU9250::read(uint8_t address, uint8_t reg) {
 	return ret;
 }
 
-// Read 1 or more bytes from given register and device using I2C
+/*!
+ * @brief Low level MPU9250 read private method.
+
+ * Reads a stream of data from the register indicated.
+ *
+ * @param address 7-bit address of the device.
+ * @param reg address of the register where the reading will start.
+ * @param buf pointer to the array to store the data read.
+ * @param size number of bytes to read.
+ *
+ * @retval None.
+ */
 void MPU9250::read(uint8_t address, uint8_t reg, uint8_t *buf, uint8_t size) {
 
 	/* Write Address and RW bit to data register */
