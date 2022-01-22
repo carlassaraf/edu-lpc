@@ -13,9 +13,7 @@ void (*adc_irq_ptr[4])(void);
 /*  Array with the different USART IRQs  */
 IRQn_Type irq_arr[4] = {
 	ADC0_SEQA_IRQn,
-	ADC0_SEQB_IRQn,
-	ADC0_THCMP_IRQn,
-	ADC0_OVR_IRQn
+	ADC0_SEQB_IRQn
 };
 
 /*!
@@ -178,20 +176,6 @@ extern "C" {
 				adc_irq_ptr[1]();
 			}
 			ADC0->FLAGS |= kADC_ConvSeqBInterruptFlag;
-		}
-	}
-
-	void ADC0_THCMP_IRQHandler(void) {
-
-		if(adc_irq_ptr[2]) {
-			adc_irq_ptr[2]();
-		}
-	}
-
-	void ADC0_OVR_IRQHandler(void) {
-
-		if(adc_irq_ptr[3]) {
-			adc_irq_ptr[3]();
 		}
 	}
 }
