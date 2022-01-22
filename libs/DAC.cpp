@@ -7,11 +7,10 @@
 
 #include <DAC.h>
 
-wave_t sineWave, triangularWave;		// Global wave structs
-
-/*  Global arrays to store up to 260 values of a sine or triangular wave  */
-uint32_t sine_wave_values[WAVE_MAX_VALUES];
-uint32_t triangular_wave_values[WAVE_MAX_VALUES];
+/* Global wave structs */
+wave_t g_wave[2] {0};
+/* Global pointers for CTimer interrupt calls */
+void (*g_wave_ptr[2])(uint32_t) = { wave_channel_0, wave_channel_1 };
 
 /*!
  * @brief DAC constructor.
@@ -22,84 +21,78 @@ uint32_t triangular_wave_values[WAVE_MAX_VALUES];
  *
  * @retval None.
  */
-DAC::DAC(uint32_t dac_channel) {
-
-	SYSCON->PDRUNCFG &= ~(1 << (dac_channel + SYSCON_PDRUNCFG_DAC0_SHIFT));		// Power up DACn
+DAC::DAC(uint8_t dac_channel) {
+	/* Power up DAC */
+	SYSCON->PDRUNCFG &= ~(1 << (dac_channel + SYSCON_PDRUNCFG_DAC0_SHIFT));
 
 	if(!dac_channel) {
-		SYSCON->SYSAHBCLKCTRL0 |= SYSCON_SYSAHBCLKCTRL0_DAC0_MASK;				// Enable clock for DAC0
-
-		SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_IOCON_MASK;			// Enable clock for IOCON to enable DAC function
+		/* Enable clock for DAC0 */
+		SYSCON->SYSAHBCLKCTRL0 |= SYSCON_SYSAHBCLKCTRL0_DAC0_MASK;
+		/* Enable clock for IOCON */
+		SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_IOCON_MASK;
+		/* Enable DAC function in PIO0_17 */
 		IOCON->PIO[0] |= IOCON_PIO_DACMODE_MASK;
-		SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);			// Disable clock for IOCON
+		/* Disable clock for IOCON */
+		SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);
+		/* Save DAC0 pointer */
 		base_dac = DAC0;
 	}
 	else {
-		SYSCON->SYSAHBCLKCTRL1 |= SYSCON_SYSAHBCLKCTRL1_DAC1_MASK;				// Enable clock for DAC1
+		/* Enable clock for DAC1 */
+		SYSCON->SYSAHBCLKCTRL1 |= SYSCON_SYSAHBCLKCTRL1_DAC1_MASK;
+		/* Save DAC1 pointer */
 		base_dac = DAC1;
 	}
-
-	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;					// Enable clock for switch matrix (SWM)
-	SWM0->PINENABLE0 &= ~(1 << (dac_channel + SWM_PINENABLE0_DACOUT0_SHIFT));	// Enable DAC function on SWM
-	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);				// Disable SWM clock
-
-	timer = new CTimer(1);		// Reserves a timer for the wave generation
+	/* Enable clock for switch matrix */
+	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;
+	/* Enable DAC function on SWM */
+	SWM0->PINENABLE0 &= ~(1 << (dac_channel + SWM_PINENABLE0_DACOUT0_SHIFT));
+	/* Disable SWM clock */
+	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);
+	/* Reserves a timer for the wave generation */
+	timer = new CTimer(1);
+	/* Save channel */
+	channel = dac_channel;
 }
 
 /*!
- * @brief DAC sine method.
+ * @brief DAC wave private method.
 
- * Initializes the necessary registers to create a sine wave.
- * Amplitude and fidelity of the sine wave depends on the frequency.
+ * Prepares the DAC to generate a wave signal.
  *
  * @param frequency of the sine wave.
+ * @param wave type of wave to be generated, could be:
+ * - WAVE_TYPE::SINE
+ * - WAVE_TYPE::TRIANGULAR
  *
  * @retval None.
  */
-void DAC::sine(uint32_t frequency) {
-
-	timer->attachInterrupt(sine_wave);		// Creates an interrupt for every amtch of the timer
-
-	getSineWaveValues(frequency);				// Calculate the necessary points of the sine wave
-
-	timer->setFrequency(frequency * sineWave.max_values);		// Have a faster timer frequency
-
-	sineWave.frequency = frequency;
-	sineWave.dac = base_dac;
-	sineWave.counter = 0;
-
+void DAC::wave(uint16_t frequency, WAVE_TYPE wave) {
+	/* Checks what kind of wave the user called */
+	if(wave == WAVE_TYPE::SINE) {
+		/* Calculate the necessary points of the sine wave */
+		getSineValues(frequency);
+	}
+	else if(wave == WAVE_TYPE::TRIANGULAR) {
+		/* Calculate the necessary points of the triangular wave */
+		getTriangularValues(frequency);
+	}
+	/* Creates an interrupt for every match of the CTimer */
+	timer->attachInterrupt(g_wave_ptr[channel]);
+	/* Have a faster timer frequency according to the number of values */
+	timer->setFrequency(frequency * g_wave[channel].max_values);
+	/* Configure the wave settings */
+	g_wave[channel].frequency = frequency;
+	g_wave[channel].dac = base_dac;
+	g_wave[channel].counter = 0;
+	/* Reset the counter */
 	timer->reset();
+	/* Start the counter */
 	timer->start();
 }
 
 /*!
- * @brief DAC triangular method.
-
- * Initializes the necessary registers to create a triangular wave.
- * Amplitude and fidelity of the triangular wave depends on the frequency.
- *
- * @param frequency of the triangular wave.
- *
- * @retval None.
- */
-void DAC::triangular(uint32_t frequency) {
-
-	timer->attachInterrupt(triangular_wave);	// Creates an interrupt for every match of the timer
-
-	getTriangularValues(frequency);				// Calculate necessary points of the triangular wave
-
-	timer->setFrequency(frequency * triangularWave.max_values);		// Have a faster timer frequency
-
-	triangularWave.frequency = frequency;
-	triangularWave.dac = base_dac;
-	triangularWave.counter = 0;
-
-	timer->reset();
-	timer->start();
-}
-
-/*!
- * @brief DAC getSineWaveValues private method.
+ * @brief DAC getSineValues private method.
 
  * Calculates the necesarry points for the sine wave
  * depending on the frequency.
@@ -108,85 +101,99 @@ void DAC::triangular(uint32_t frequency) {
  *
  * @retval None.
  */
-void DAC::getSineWaveValues(uint32_t frequency) {
-
-	sineWave.max_values = -0.09 * frequency + 100.09;				// Function approximation
-	sineWave.amplitude_multiplier = -0.15 * frequency + 250.15;		// Function approximation
+void DAC::getSineValues(uint16_t frequency) {
+	/* Function approximation for the max values */
+	g_wave[channel].max_values = -0.09 * frequency + 100.09;
+	/* Function approximation for the amplitude multiplier */
+	g_wave[channel].amplitude_multiplier = -0.15 * frequency + 250.15;
 
 	float t = 0;
-	float inc = 1 / ((float)sineWave.max_values * frequency);
-
-	for (unsigned int i = 0 ; i < sineWave.max_values ; i++) {
-
-		sine_wave_values[i] = 512 +  sineWave.amplitude_multiplier * sin(2 * M_PI * frequency * t);
+	/* Calculate increment so that 1 cycle matches the number of values */
+	float inc = 1 / ((float)g_wave[channel].max_values * frequency);
+	/* Calculate all the necessary values */
+	for (unsigned int i = 0 ; i < g_wave[channel].max_values ; i++) {
+		/* Calculate the value for that time value */
+		g_wave[channel].values[i] = g_wave[channel].amplitude_multiplier * sin(2 * M_PI * frequency * t);
+		/* Add offset */
+		g_wave[channel].values[i] += 512;
+		/* Go to the next t value */
 		t += inc;
 	}
 }
 
 /*!
- * @brief DAC getTriangularWaveValues private method.
+ * @brief DAC getTriangularValues private method.
 
- * Calculates the necesarry points for the triangular wave
+ * Calculates the necessary points for the triangular wave
  * depending on the frequency.
  *
  * @param frequency of the triangular wave.
  *
  * @retval None.
  */
-void DAC::getTriangularValues(uint32_t frequency) {
-
-	triangularWave.max_values = -0.09 * frequency + 100.09;
-	triangularWave.amplitude_multiplier = -0.15 * frequency + 250.15;
-
+void DAC::getTriangularValues(uint16_t frequency) {
+	/* Function approximation for the max values */
+	g_wave[channel].max_values = -0.09 * frequency + 100.09;
+	/* Function approximation for the amplitude multiplier */
+	g_wave[channel].amplitude_multiplier = -0.15 * frequency + 250.15;
+	/* Calculate increment of time for only a cuarter */
 	float dt = round((float)triangularWave.max_values / 4);
+	/* Calculate amplitude increment for each value */
 	float dv = triangularWave.amplitude_multiplier / dt;
 	float t = dt;
 
 	int i = 0;
+	/* First positive slope */
 	while (i < t) {
-		triangular_wave_values[i] = 512 +  dv * i;
+		/* Calculate value for that point plus offset */
+		g_wave[channel].values[i] = 512 +  dv * i;
 		i++;
 	}
-
+	/* Update variables */
 	int aux = i;
 	t += dt;
-
+	/* First negative slope */
 	while (i < t) {
-		triangular_wave_values[i] = triangular_wave_values[aux - (i + 1 - aux)];
+		/* Calculate value for that point plus offset */
+		g_wave[channel].values[i] = g_wave[channel].values[aux - (i + 1 - aux)];
 		i++;
 	}
-
+	/* Update variables */
 	aux = i;
 	t += dt;
-
+	/* Second negative slope */
 	while (i < t) {
-		triangular_wave_values[i] = -1 * triangular_wave_values[i + 1 - aux];
+		/* Calculate value for that point plus offset */
+		g_wave[channel].values[i] = -1 * g_wave[channel].values[i + 1 - aux];
 		i++;
 	}
-
+	/* Update variables */
 	aux = i;
 	t += dt;
-
+	/* Second positive slope */
 	while (i < t) {
-		triangular_wave_values[i] = triangular_wave_values[aux - (i + 1 - aux)];
+		/* Calculate value for that point plus offset */
+		g_wave[channel].values[i] = g_wave[channel].values[aux - (i + 1 - aux)];
 		i++;
 	}
 }
 
 /*!
- * @brief DAC sine wave handler.
+ * @brief DAC wave_channel_0 handler.
 
- * Sets the sine wave value every timer match interrupt.
+ * Sets the wave value every timer match interrupt.
  *
  * @param flags CTIMER flags.
  *
  * @retval None.
  */
-void sine_wave(uint32_t flags) {
-
-	sineWave.dac->CR = (sine_wave_values[sineWave.counter++] & 0x3ff) << 6;
-	if (sineWave.counter == sineWave.max_values) {
-		sineWave.counter = 0;
+void wave_channel_0(uint32_t flags) {
+	/* Set the DAC value */
+	g_wave[0].dac->CR = (g_wave[0].values[g_wave[0].counter++] & 0x3ff) << 6;
+	/* Check if the cycle is finished */
+	if (g_wave[0].counter == g_wave[0].max_values) {
+		/* Reset the wave */
+		g_wave[0].counter = 0;
 	}
 }
 
@@ -199,10 +206,12 @@ void sine_wave(uint32_t flags) {
  *
  * @retval None.
  */
-void triangular_wave(uint32_t flags) {
-
-	triangularWave.dac->CR = (triangular_wave_values[triangularWave.counter++] & 0x3ff) << 6;
-	if (triangularWave.counter == triangularWave.max_values) {
-		triangularWave.counter = 0;
+void wave_channel_1(uint32_t flags) {
+	/* Set the DAC value */
+	g_wave[1].dac->CR = (g_wave[1].values[g_wave[1].counter++] & 0x3ff) << 6;
+	/* Check if the cycle is finished */
+	if (g_wave[1].counter == g_wave[1].max_values) {
+		/* Reset the wave */
+		g_wave[1].counter = 0;
 	}
 }

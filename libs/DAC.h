@@ -14,9 +14,9 @@
 #include <math.h>
 #include "CTimer.h"
 
-/* DAC definitions */
-#define IOCON_DACMODE_SHIFT		16UL
-#define WAVE_MAX_VALUES			360
+/* DAC constants */
+static constexpr uint8_t IOCON_DACMODE_SHIFT = 16UL;
+static constexpr uint16_t WAVE_MAX_VALUES = 360;
 
 /* typedef struct for the sine and triangular waves */
 typedef struct {
@@ -25,28 +25,40 @@ typedef struct {
 	uint32_t max_values;
 	uint32_t frequency;
 	float amplitude_multiplier;
+	uint16_t values[360];
 } wave_t;
+
+/* DAC wave types */
+enum class WAVE_TYPE : uint8_t {
+	SINE,
+	TRIANGULAR
+};
 
 /* Class definition */
 class DAC {
 
 	public:
 		/* Constructors */
-		DAC(uint32_t dac_channel);
+		DAC(uint8_t dac_channel);
 		/* Public methods */
-		void triangular(uint32_t frequency);
-		CTimer* getTimer(void);
-		void set(uint32_t value);
+		void set(uint16_t value);
 		uint16_t get(void);
 		void setVoltage(float voltage);
-		void sine(uint32_t frequency);
+		CTimer* getTimer(void);
+		void sine(uint16_t frequency);
+		void triangular(uint16_t frequency);
 
 	private:
+		/* Pointer to DAC peripherial */
 		DAC_Type *base_dac;
+		/* Pointer to CTimer object */
 		CTimer *timer;
-
-		void getSineWaveValues(uint32_t frequency);
-		void getTriangularValues(uint32_t frequency);
+		/* DAC channel */
+		uint8_t channel;
+		/* Private methods */
+		void wave(uint16_t frequency, WAVE_TYPE wave);
+		void getSineValues(uint16_t frequency);
+		void getTriangularValues(uint16_t frequency);
 };
 
 /* Inline methods */
@@ -60,7 +72,7 @@ class DAC {
  *
  * @retval None.
  */
-inline void DAC::set(uint32_t value) {
+inline void DAC::set(uint16_t value) {
 	/* Pass value to DAC register */
 	base_dac->CR = (value & 0x3ff) << 6;
 }
@@ -105,10 +117,38 @@ inline void DAC::setVoltage(float voltage) {
  *
  * @retval pointer to the CTimer.
  */
-inline CTimer* DAC::getTimer(void) { return timer; 
+inline CTimer* DAC::getTimer(void) { return timer; }
+
+/*!
+ * @brief DAC sine method.
+
+ * Calls the wave method to prepare the
+ * registers to generate a sine wave.
+ *
+ * @param frequency of the sine wave.
+ *
+ * @retval None.
+ */
+inline void DAC::sine(uint16_t frequency) {
+	wave(frequency, WAVE_TYPE::SINE);
+}
+
+/*!
+ * @brief DAC triangular method.
+
+ * Calls the wave method to prepare the
+ * register to generate a triangular wave.
+ *
+ * @param frequency of the triangular wave.
+ *
+ * @retval None.
+ */
+inline void DAC::triangular(uint16_t frequency) {
+	wave(frequency, WAVE_TYPE::TRIANGULAR);
+}
 
 /* Extra function prototypes */
-void sine_wave(uint32_t flags);
-void triangular_wave(uint32_t flags);
+void wave_channel_0(uint32_t flags);
+void wave_channel_1(uint32_t flags);
 
 #endif /* DAC_H_ */
