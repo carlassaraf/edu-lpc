@@ -125,9 +125,6 @@ void I2C::init(uint8_t i2cn, uint32_t frequency) {
 	i2c_base = (i2c < 2)? (I2C_Type*)(0x40050000 + i2c * 0x4000) : (I2C_Type*)(0x40030000 * (i2c - 2) * 0x4000);
 	/* Select clock from the FRO */
 	CLOCK_Select((clock_select_t)CLK_MUX_DEFINE(FCLKSEL[5U + i2c], 0U));
-	/* Update swm functions according to the I2C peripherial selected*/
-	settings.swm_function[SDA_INDEX] = (swm_select_movable_t)(kSWM_I2C1_SDA + 2 * (i2c_index - 1));
-	settings.swm_function[SCL_INDEX] = (swm_select_movable_t)(kSWM_I2C1_SCL + 2 * (i2c_index - 1));
 	/* For I2C0 enable the set pin function */
 	if (i2c_index == 0) {
 		/* Enable clock for SWM */
@@ -141,6 +138,9 @@ void I2C::init(uint8_t i2cn, uint32_t frequency) {
 	}
 	/* For I2C2-3 assign pins PIO0_1 and PIO0_0 */
 	else if (i2c_index > 0) {
+		/* Update swm functions according to the I2C peripherial selected*/
+		settings.swm_function[SDA_INDEX] = (swm_select_movable_t)(kSWM_I2C1_SDA + 2 * (i2c_index - 1));
+		settings.swm_function[SCL_INDEX] = (swm_select_movable_t)(kSWM_I2C1_SCL + 2 * (i2c_index - 1));
 		/* SDA in PIO0_1 and SCL in PIO0_0 */
 		assignPins(1, 0);
 	}
