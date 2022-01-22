@@ -60,4 +60,64 @@ class PWM {
 		uint8_t createEvent(uint32_t matchValue);
 };
 
+
+/* Inline methods */
+
+/*!
+ * @brief PWM getDuty method.
+
+ * Gets the current PWM duty cycle.
+ *
+ * @param None.
+ *
+ * @retval PWM duty cycle in percentage.
+ */
+inline uint8_t PWM::getDuty(void) {
+	/* Duty cycle from sesttings */
+	return settings.config.dutyCyclePercent;
+}
+
+/*!
+ * @brief PWM getFrequency method.
+
+ * Gets the current PWM frequency.
+ *
+ * @param None.
+ *
+ * @retval PWM frequency in percentage.
+ */
+inline uint32_t PWM::getFrequency(void) {
+	/* Frequency from settings */
+	return settings.frequency;
+}
+
+/*!
+ * @brief PWM createEvent private method.
+
+ * Creates two new match events for the SCTimer. The first to
+ * define what the counter will do when it reaches the PWM period
+ * and the other when it reaches the match value.
+ *
+ * @param matchValue value to be reached by the counter and trigger
+ * the event.
+ *
+ * @retval event index.
+ */
+inline uint8_t PWM::createEvent(uint32_t matchValue) {
+	/* Control variable */
+    uint32_t currentCtrlVal = (uint32_t)kSCTIMER_MatchEventOnly;
+	/* Use Counter_L bits if counter is operating in 32-bit mode */
+	currentCtrlVal |= SCT_EV_CTRL_MATCHSEL(s_currentMatch);
+	/* Update match value for current event */
+	SCT0->MATCH[s_currentMatch]    = matchValue;
+	SCT0->MATCHREL[s_currentMatch] = matchValue;
+	SCT0->EV[s_currentEvent].CTRL  = currentCtrlVal;
+	/* Increment the match register number */
+	s_currentMatch++;
+	/* Enable the event in the current state and increment event */
+    SCT0->EV[s_currentEvent++].STATE = (1UL << s_currentState);
+	/* Return the event that was created */
+    return s_currentEvent - 1;
+}
+
 #endif /* PWM_H_ */
