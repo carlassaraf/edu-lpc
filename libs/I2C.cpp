@@ -19,7 +19,7 @@
  * @retval None.
  */
 I2C::I2C(uint32_t i2cn) {
-
+	/* Call initialization */
 	init(i2cn, 12000000U);
 }
 
@@ -36,7 +36,7 @@ I2C::I2C(uint32_t i2cn) {
  * @retval None.
  */
 I2C::I2C(uint32_t i2cn, uint32_t frequency) {
-
+	/* Call initialization */
 	init(i2cn, frequency);
 }
 
@@ -52,26 +52,16 @@ I2C::I2C(uint32_t i2cn, uint32_t frequency) {
  * @retval None.
  */
 void I2C::assignPins(uint8_t sda, uint8_t scl) {
-
-	swm_select_movable_t swm_sda, swm_scl;
-
-	if (i2cx == 1) {
-		swm_sda = kSWM_I2C1_SDA;
-		swm_scl = kSWM_I2C1_SCL;
-	}
-	else if (i2cx == 2) {
-		swm_sda = kSWM_I2C2_SDA;
-		swm_scl = kSWM_I2C2_SCL;
-	}
-	else if (i2cx == 3) {
-		swm_sda = kSWM_I2C3_SDA;
-		swm_scl = kSWM_I2C3_SCL;
-	}
-
-	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;		// Enable SWM CLK
-	SWM_SetMovablePinSelect(SWM0, swm_sda, (swm_port_pin_type_t)sda);
-	SWM_SetMovablePinSelect(SWM0, swm_scl, (swm_port_pin_type_t)scl);
-	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);	// Disable SWM CLK
+	/* Update pins in settings */
+	settings.swm_pins[SDA_INDEX] = (swm_port_pin_type_t)sda;
+	settings.swm_pins[SCL_INDEX] = (swm_port_pin_type_t)scl;
+	/* Enable SWM CLK */
+	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;
+	/* Change I2C pins */
+	SWM_SetMovablePinSelect(SWM0, settings.swm_function[SDA_INDEX], settings.swm_pins[SDA_INDEX]);
+	SWM_SetMovablePinSelect(SWM0, settings.swm_function[SCL_INDEX], settings.swm_pins[SCL_INDEX]);
+	/* Disable SWM CLK */
+	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);
 }
 
 /*!
@@ -86,10 +76,14 @@ void I2C::assignPins(uint8_t sda, uint8_t scl) {
  * @retval status of the communication.
  */
 void I2C::write(uint8_t address, uint8_t *buff, uint8_t size) {
-
-	I2C_MasterStart(i2c, address, kI2C_Write);
-	I2C_MasterWriteBlocking(i2c, buff, size, kI2C_TransferDefaultFlag);
-	return I2C_MasterStop(i2c);
+	/* Write Address and RW bit to data register */
+	i2c_base->MSTDAT = ((uint32_t)address << 1) | ((uint32_t)kI2C_Write & 1u);
+	/* Start the transfer */
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	/* Write register and data */
+	I2C_MasterWriteBlocking(i2c_base, buff, size, kI2C_TransferDefaultFlag);
+	/* Stop transfer */
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
 }
 
 /*!
@@ -104,10 +98,14 @@ void I2C::write(uint8_t address, uint8_t *buff, uint8_t size) {
  * @retval status of the communication.
  */
 void I2C::read(uint8_t address, uint8_t *buff, uint8_t size) {
-
-	I2C_MasterStart(i2c, address, kI2C_Read);
-	I2C_MasterReadBlocking(i2c, buff, size, kI2C_TransferDefaultFlag);
-	return I2C_MasterStop(i2c);
+	/* Write Address and RW bit to data register */
+	i2c_base->MSTDAT = ((uint32_t)address << 1) | ((uint32_t)kI2C_Read & 1u);
+	/* Start the transfer */
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	/* Read from slave */
+	I2C_MasterReadBlocking(i2c_base, buff, size, kI2C_TransferDefaultFlag);
+	/* Stop transfer */
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
 }
 
 /*!
@@ -121,23 +119,33 @@ void I2C::read(uint8_t address, uint8_t *buff, uint8_t size) {
  * @retval None.
  */
 void I2C::init(uint8_t i2cn, uint32_t frequency) {
-
-	i2cx = i2cn;
-	i2c = getInstance(i2cn);
-
-	if (i2cx == 0) {
+	/* Store the index of the I2C */
+	i2c_index = i2c;
+	/* Calculate the I2C peripherial address */
+	i2c_base = (i2c < 2)? (I2C_Type*)(0x40050000 + i2c * 0x4000) : (I2C_Type*)(0x40030000 * (i2c - 2) * 0x4000);
+	/* Select clock from the FRO */
+	CLOCK_Select((clock_select_t)CLK_MUX_DEFINE(FCLKSEL[5U + i2c], 0U));
+	/* Update swm functions according to the I2C peripherial selected*/
+	settings.swm_function[SDA_INDEX] = (swm_select_movable_t)(kSWM_I2C1_SDA + 2 * (i2c_index - 1));
+	settings.swm_function[SCL_INDEX] = (swm_select_movable_t)(kSWM_I2C1_SCL + 2 * (i2c_index - 1));
+	/* For I2C0 enable the set pin function */
+	if (i2c_index == 0) {
+		/* Enable clock for SWM */
 	    CLOCK_EnableClock(kCLOCK_Swm);
-	    SWM_SetFixedPinSelect(SWM0, kSWM_I2C0_SDA, true);		// PIO0_11
-	    SWM_SetFixedPinSelect(SWM0, kSWM_I2C0_SCL, true);		// PIO0_10
+	    /* SDA on PIO0_11 */
+	    SWM_SetFixedPinSelect(SWM0, kSWM_I2C0_SDA, true);
+	    /* SCL on PIO0_10 */
+	    SWM_SetFixedPinSelect(SWM0, kSWM_I2C0_SCL, true);
+	    /* Disable clock for SWM */
 	    CLOCK_DisableClock(kCLOCK_Swm);
 	}
-
-	else if (i2cx > 0) {
+	/* For I2C2-3 assign pins PIO0_1 and PIO0_0 */
+	else if (i2c_index > 0) {
+		/* SDA in PIO0_1 and SCL in PIO0_0 */
 		assignPins(1, 0);
 	}
-
-	i2c_master_config_t masterConfig;
-	I2C_MasterGetDefaultConfig(&masterConfig);
-	masterConfig.baudRate_Bps = frequency;
-	I2C_MasterInit(i2c, &masterConfig, 12000000U);
+	/* Update baud rate in settings */
+	settings.config.baudRate_Bps = frequency;
+	/* Initialize I2C peripherial */
+	I2C_MasterInit(i2c_base, &settings.config, 12000000U);
 }
