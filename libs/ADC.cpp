@@ -8,26 +8,7 @@
 #include <ADC.h>
 
 /*  ADC IRQ handler pointer  */
-void (*adc_irq_ptr[4])(void);
-
-/*  Array with the different USART IRQs  */
-IRQn_Type irq_arr[4] = {
-	ADC0_SEQA_IRQn,
-	ADC0_SEQB_IRQn
-};
-
-/*!
- * @brief ADC constructor.
-
- * Creates an ADC object. Default channel is 0.
- *
- * @param None.
- *
- * @retval None.
- */
-ADC::ADC(void) {
-	init(0);
-}
+static void (*irq_ptr)(void);
 
 /*!
  * @brief ADC constructor.
@@ -35,36 +16,60 @@ ADC::ADC(void) {
  * Creates an ADC object.
  *
  * @param channel index of the channel to be used.
+ * Defaults to 0.
  *
  * @retval None.
  */
-ADC::ADC(uint32_t channel) {
-
-	init(channel);
+ADC::ADC(uint8_t channel) {
+	/* Enable clock for SWM */
+	CLOCK_EnableClock(kCLOCK_Swm);
+	/* Set fixed function on the pin associated with the channel */
+	SWM_SetFixedPinSelect(SWM0, (swm_select_fixed_pin_t)(kSWM_ADC_CHN0 + channel), true);
+	/* Disable clock for SWM */
+	CLOCK_DisableClock(kCLOCK_Swm);
+	/* Enable clock for ADC0 */
+	CLOCK_Select(kADC_Clk_From_Fro);
+	/* ADC0 clock same as FRO */
+	CLOCK_SetClkDivider(kCLOCK_DivAdcClk, 1U);
+	/* Enable ADC0 power */
+	POWER_DisablePD(kPDRUNCFG_PD_ADC0);
+	/* Get ADC0 frequency */
+	uint32_t freq = CLOCK_GetFreq(kCLOCK_Fro) / CLOCK_GetClkDivider(kCLOCK_DivAdcClk);
+	/* Calibrate ADC0 */
+	ADC_DoSelfCalibration(ADC0, freq);
+	/* Update selected channel in settings */
+	settings.channel = channel;
+	settings.sequence.channelMask = 1U << channel;
+	/* Initialize ADC0 with given configuration */
+	ADC_Init(ADC0, &settings.config);
+	/* Configure Sequence A */
+	ADC_SetConvSeqAConfig(ADC0, &settings.sequence);
+	/* Enable conversion for Sequenve A */
+	ADC_EnableConvSeqA(ADC0, true);
 }
 
 /*!
  * @brief ADC read method.
 
- * Initiates a new conversion and returns the
- * value if no interrupt is enabled.
+ * Returns the conversion value if interrupts
+ * are enabled or starts a new one and returns
+ * the value when ready if not.
  *
  * @param None.
  *
- * @retval conversion result if read via polling.
- * Returns 0 otherwise.
+ * @retval conversion result.
  */
-uint32_t ADC::read(void) {
-
-	ADC0->SEQ_CTRL[0] |= 1 << selected_channel;
-	ADC0->SEQ_CTRL[0] |= 0x04000000;
-
+uint16_t ADC::read(void) {
+	/* Check if an interrupt is enabled */
 	if(ADC0->INTEN) {
-		return 0;
+		/* Return if there is */
+		return ((ADC0->DAT[settings.channel] & ADC_DAT_RESULT_MASK)) >> 4;
 	}
-
-	uint32_t result;
-
+	/* Select channel */
+	select();
+	/* Start conversion */
+	start();
+	/* If not, get the result when is ready */
 	return getResult();
 }
 
@@ -77,91 +82,39 @@ uint32_t ADC::read(void) {
  *
  * @retval conversion result.
  */
-uint32_t ADC::getResult(void) {
-
-	uint32_t result;
-
+uint16_t ADC::getResult(void) {
+	/* Wait for the conversion to be ready */
 	while(!ready());
-	result = ((ADC0->DAT[selected_channel] & ADC_DAT_RESULT_MASK)) >> 4;
-
-    return result;
+	/* Return data when ready */
+	return (uint16_t)(((ADC0->DAT[settings.channel] & ADC_DAT_RESULT_MASK)) >> 4);
 }
 
 /*!
  * @brief ADC attachInterrupt method.
 
  * Attach a function as a ADC interrupt handler.
- * Only supports Sequence A and B interrupts.
+ * Only supports Sequence A interrupt.
  *
  * @param f function to be called.
- * @param type interrupt to be enabled.
  *
  * @retval None.
  */
 void ADC::attachInterrupt(void (*f)(void), adc_irq_type_t type) {
-
-	adc_irq_ptr[type] = f;
-
-	ADC0->INTEN |= 1 << type;
-	NVIC_EnableIRQ(irq_arr[type]);
+	/* Store function in pointer */
+	irq_ptr = f;
+	/* Enable Sequence A interrupt */
+	ADC0->INTEN |= 1 << SEQA;
+	NVIC_EnableIRQ(ADC0_SEQA_IRQn);
 }
 
-/*!
- * @brief ADC init private method.
-
- * Deals with most of the ADC initialization.
- *
- * @param channel index of the channel to be used.
- *
- * @retval None.
- */
-void ADC::init(uint32_t channel) {
-
-	selected_channel = channel;
-
-	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;		// Activo la matriz de conmutacion (SWM)
-	SWM0->PINENABLE0 &= ~(1 << (channel + SWM_PINENABLE0_ADC_0_SHIFT));
-	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);	// Desactivo el SWM para que tome efecto el cambio
-
-	SYSCON->SYSAHBCLKCTRL0	|= SYSCON_SYSAHBCLKCTRL0_ADC_MASK;		// Activo el clock del ADC
-	SYSCON->ADCCLKSEL = 0;	// FRO
-	SYSCON->ADCCLKDIV = 1;	// FRO / 1
-	SYSCON->PDRUNCFG &= ~(SYSCON_PDAWAKECFG_ADC_PD_MASK);			// Power ADC
-
-	ADC0->TRM &= ~(ADC_TRM_VRANGE_MASK);		// V range 2.7V~3.6V
-    ADC0->CTRL |= 0x40000000;					// calibracion del adc
-    ADC0->CTRL &= ~0xFF;						// Synchronous mode.
-    ADC0->CTRL |= 23;							// (FRO / 500KHz) - 1
-    ADC0->CTRL &= ~0x400;						// low-power disabled
-	for(uint32_t i = 0 ; i < 4000 ; i++);
-
-	ADC0->INTEN	= 0;							// No interrupt
-	ADC0->CTRL |= 1;							// FRO / 1
-	ADC0->SEQ_CTRL[0] |= 0xC0040000;			// Seq A configuration
-	ADC0->SEQ_CTRL[0] |= 1 << selected_channel;
-}
-
-/*  ADC IRQ handlers  */
-
+/* ADC IRQ handlers */
 extern "C" {
-
+	/* Overwrite default IRQHandler */
 	void ADC0_SEQA_IRQHandler(void) {
-
-		if((ADC0->FLAGS) & kADC_ConvSeqAInterruptFlag) {
-			if(adc_irq_ptr[0]) {
-				adc_irq_ptr[0]();
-			}
-			ADC0->FLAGS |= kADC_ConvSeqAInterruptFlag;
-		}
-	}
-
-	void ADC0_SEQB_IRQHandler(void) {
-
-		if((ADC0->FLAGS) & kADC_ConvSeqBInterruptFlag) {
-			if(adc_irq_ptr[1]) {
-				adc_irq_ptr[1]();
-			}
-			ADC0->FLAGS |= kADC_ConvSeqBInterruptFlag;
+		/* Check if there is a function associated */
+		if(*irq_ptr) {
+			/* Call the function */
+			(*irq_ptr)();
 		}
 	}
 }
