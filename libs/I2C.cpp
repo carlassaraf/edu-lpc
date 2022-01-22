@@ -12,7 +12,7 @@
 
  * Creates an I2C object. Default frequency is 12MHz.
  * I2C0 default pins: PIO0_10 SCL / PIO0_11 SDA.
- * I2C1-3 default pins: PIO0_1 SCL / PIO0_0 SDA.
+ * I2C1-3 default pins: PIO0_0 SCL / PIO0_1 SDA.
  *
  * @param i2cn is the I2C module to use (0-3).
  *
@@ -28,7 +28,7 @@ I2C::I2C(uint32_t i2cn) {
 
  * Creates an I2C object.
  * I2C0 default pins: PIO0_10 SCL / PIO0_11 SDA.
- * I2C1-3 default pins: PIO0_1 SCL / PIO0_0 SDA.
+ * I2C1-3 default pins: PIO0_0 SCL / PIO0_1 SDA.
  *
  * @param i2cn is the I2C module to use (0-3).
  * @param frequency the frequency of the I2C communication
@@ -51,7 +51,7 @@ I2C::I2C(uint32_t i2cn, uint32_t frequency) {
  *
  * @retval None.
  */
-void I2C::assignPins(uint32_t sda, uint32_t scl) {
+void I2C::assignPins(uint8_t sda, uint8_t scl) {
 
 	swm_select_movable_t swm_sda, swm_scl;
 
@@ -85,7 +85,7 @@ void I2C::assignPins(uint32_t sda, uint32_t scl) {
  *
  * @retval status of the communication.
  */
-status_t I2C::write(uint8_t address, uint8_t *buff, uint32_t size) {
+void I2C::write(uint8_t address, uint8_t *buff, uint8_t size) {
 
 	I2C_MasterStart(i2c, address, kI2C_Write);
 	I2C_MasterWriteBlocking(i2c, buff, size, kI2C_TransferDefaultFlag);
@@ -103,24 +103,11 @@ status_t I2C::write(uint8_t address, uint8_t *buff, uint32_t size) {
  *
  * @retval status of the communication.
  */
-status_t I2C::read(uint8_t address, uint8_t *buff, uint32_t size) {
+void I2C::read(uint8_t address, uint8_t *buff, uint8_t size) {
 
 	I2C_MasterStart(i2c, address, kI2C_Read);
 	I2C_MasterReadBlocking(i2c, buff, size, kI2C_TransferDefaultFlag);
 	return I2C_MasterStop(i2c);
-}
-
-/*!
- * @brief I2C getI2C method.
-
- * Returns the I2C register associated with the instance.
- *
- * @param None.
- *
- * @retval I2C peripherial pointer.
- */
-I2C_Type* I2C::getI2C(void) {
-	return i2c;
 }
 
 /*!
@@ -133,7 +120,7 @@ I2C_Type* I2C::getI2C(void) {
  *
  * @retval None.
  */
-void I2C::init(uint32_t i2cn, uint32_t frequency) {
+void I2C::init(uint8_t i2cn, uint32_t frequency) {
 
 	i2cx = i2cn;
 	i2c = getInstance(i2cn);
@@ -153,38 +140,4 @@ void I2C::init(uint32_t i2cn, uint32_t frequency) {
 	I2C_MasterGetDefaultConfig(&masterConfig);
 	masterConfig.baudRate_Bps = frequency;
 	I2C_MasterInit(i2c, &masterConfig, 12000000U);
-}
-
-/*!
- * @brief I2C private getInstance method.
-
- * Gets the I2C module to be used and selects the clock.
- *
- * @param i2cn index of the I2C module to be used.
- *
- * @retval I2C module.
- */
-I2C_Type* I2C::getInstance(uint32_t i2cn) {
-
-	if(i2cn == 0) {
-		CLOCK_Select(kI2C0_Clk_From_MainClk);
-		return I2C0;
-	}
-
-	if(i2cn == 1) {
-		CLOCK_Select(kI2C1_Clk_From_MainClk);
-		return I2C1;
-	}
-
-	if(i2cn == 2) {
-		CLOCK_Select(kI2C2_Clk_From_MainClk);
-		return I2C2;
-	}
-
-	if(i2cn == 3) {
-		CLOCK_Select(kI2C3_Clk_From_MainClk);
-		return I2C3;
-	}
-
-	return I2C0;
 }
