@@ -69,20 +69,6 @@ uint32_t ADC::read(void) {
 }
 
 /*!
- * @brief ADC ready method.
-
- * Checks if the conversion is ready to be read.
- *
- * @param None.
- *
- * @retval Returns 1 if ready, 0 otherwise.
- */
-uint32_t ADC::ready(void) {
-
-	return ADC0->DAT[selected_channel] & ADC_DAT_DATAVALID_MASK;
-}
-
-/*!
  * @brief ADC getResult method.
 
  * Returns the result of the conversion if it's ready.

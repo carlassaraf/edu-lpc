@@ -8,47 +8,94 @@
 #ifndef ADC_H_
 #define ADC_H_
 
-/*  ADC includes  */
-
+/* ADC includes */
 #include <fsl_adc.h>
-#include <fsl_common.h>
+#include <fsl_power.h>
+#include <fsl_swm.h>
 
-/*  ADC IRQ indexes  */
+/* ADC configuration struct */
+typedef struct {
 
-#define ADC_SEQA_IRQ_INDEX	0
-#define ADC_SEQB_IRQ_INDEX	1
-#define ADC_THCMP_IRQ_INDEX	2
-#define ADC_OVR_IRQ_INDEX	3
+	adc_config_t config = {
+		kADC_ClockSynchronousMode,	/* Synchronous clock source */
+		1U,							/* Clock divider = 1 */
+		false,						/* Low power mode disabled */
+		kADC_HighVoltageRange, 		/* High voltage range */
+	};
+	adc_conv_seq_config_t sequence = {
+		1U << 0,							/* Channel 0 */
+		0U,									/* Trigger mask */
+		kADC_TriggerPolarityPositiveEdge, 	/* Trigger on positive edge */
+		false,								/* No sync bypass */
+		false, 								/* No single step */
+		kADC_InterruptForEachSequence		/* Interrupt mode */
+	};
+	uint8_t channel = 0U;	/* Selected channel */
+} adc_user_config_t;
 
-#define SYSCON_PDRUNCFG_ADC0_SHIFT	4UL
+/* ADC constants */
+static constexpr uint8_t SEQA = 0;
 
-/*  Interrupts available  */
-
-typedef enum {
-	kSEQA_IRQ,
-	kSEQB_IRQ,
-	kTHCMP_IRQ,
-	kOVR_IRQ
-} adc_irq_type_t;
-
-/*  Class definition  */
-
+/* Class definition */
 class ADC {
 
 	public:
-	
-		ADC(void);
-		ADC(uint32_t channel);
-		uint32_t read(void);
-		uint32_t ready(void);
-		uint32_t getResult(void);
-		void attachInterrupt(void (*f)(void), adc_irq_type_t type);
+		/* Constructors */
+		ADC(uint8_t channel = 0);
+		void select(void);
+		void start(void);
+		bool ready(void);
+		uint16_t read(void);
+		uint16_t getResult(void);
+		void attachInterrupt(void (*f)(void));
 
 	private:
-	
-		uint32_t selected_channel;
-
-		void init(uint32_t channel);
+		/* Configuration data */
+		adc_user_config_t settings;
 };
+
+/* Inline methods */
+
+/*!
+ * @brief ADC select method.
+
+ * Selects the channel to be converted.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+inline void ADC::select(void) {
+	/* Select the channel to convert*/
+	ADC0->SEQ_CTRL[SEQA] |= 1 << settings.channel;
+}
+
+/*!
+ * @brief ADC start method.
+
+ * Starts the conversion.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+inline void ADC::start(void) {
+	/* Software trigger conversion */
+	ADC0->SEQ_CTRL[SEQA] |= 0x04000000;
+}
+
+/*!
+ * @brief ADC ready method.
+
+ * Checks if the conversion is ready to be read.
+ *
+ * @param None.
+ *
+ * @retval true if ready, false otherwise.
+ */
+inline bool ADC::ready(void) {
+	/* Check for conversion ready flag and cast it to boolean */
+	return (bool)(ADC0->DAT[settings.channel] & ADC_DAT_DATAVALID_MASK);
+}
 
 #endif /* ADC_H_ */
