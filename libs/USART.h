@@ -8,19 +8,46 @@
 #ifndef USART_H_
 #define USART_H_
 
-/*  USART includes  */
-
-#include <fsl_common.h>
+/* USART includes */
+#include <stdio.h>
 #include <fsl_usart.h>
 #include <fsl_swm.h>
 
-/*  Class definition  */
+/* USART configuration struct */
+typedef struct {
+	usart_config_t usart_config = {
+		115200,							/* Baud rate */
+		true,							/* Rx enabled */
+		true,							/* Tx enabled */
+		false,							/* Loopback disabled */
+		false,							/* Continuous SCLK disabled */
+		false,							/* Hardware control disabled */
+		kUSART_ParityDisabled,			/* No parity */
+		kUSART_OneStopBit,				/* One stop bit */
+		kUSART_8BitsPerChar,			/* 8-bit data length */
+		kUSART_SyncModeDisabled,		/* Asynchronous mode */
+		kUSART_RxSampleOnFallingEdge	/* Sample on falling edge */
+	};
+	/* Movable pin functions */
+	swm_select_movable_t swm_functions[2] {0};
+	/* TX and RX pins */
+	swm_port_pin_type_t swm_pins[2] = {
+		kSWM_PortPin_P0_24,
+		kSWM_PortPin_P0_25
+	};
+} usart_settings_t;
 
+/* USART constants */
+static constexpr uint8_t TXD_INDEX = 0;
+static constexpr uint8_t RXD_INDEX = 1;
+
+/* Class definition */
 class USART {
 
 	public:
-
+		/* Constructors */
 		USART(uint32_t usart_type, uint32_t baud_rate);
+		/* Public methods */
 		void print(uint8_t ch);
 		void print(uint8_t *buff);
 		void print(const char *str);
@@ -33,10 +60,12 @@ class USART {
 		void read(uint8_t *buffer, uint32_t size);
 
 	private:
-
+		/* USART index */
 		uint32_t usart_n;
+		/* USART peropherial pointer */
 		USART_Type *usart;
-		swm_select_movable_t swm_pins[5];	// { kSWM_USARTn_TXD, kSWM_USARTn_RXD, kSWM_USARTn_RTS, kSWM_USARTn_CTS, kSWM_USARTn_SCLK }
+		/* USART settings struct */
+		usart_settings_t settings;
 };
 
 #endif /* USART_H_ */
