@@ -21,35 +21,22 @@ static void (*isr_handler[1])(void);
  * @retval None.
  */
 Tick::Tick(uint32_t us, void (*f)(void)) {
-
-	tickCounter = 0;
-	isr_handler[0] = f;
-
+	/* Save function in pointer */
+	isr_handler = f;
+	/* Calculate the number of ticks to match */
 	uint32_t ticks = SystemCoreClock * (us / 1E6);
+    /* Configure SysTick */
 	SysTick_Config(ticks);
 }
 
-/*!
- * @brief Tick getTickCounter method.
-
- * Returns the counter value.
- *
- * @param None.
- *
- * @retval counter value.
- */
-uint32_t Tick::getTickCounter(void) {
-	return tickCounter;
-}
-
-/*  SysTick IRQ handler  */
-
+/* SysTick IRQ handler */
 extern "C" {
-
+    /* Overwrite default handler */
     void SysTick_Handler(void) {
-
-        if (isr_handler[0]) {
-            isr_handler[0]();
+        /* Check if there is a function */
+        if (*isr_handler) {
+            /* Call function */
+            (*isr_handler)();
         }
     }
 }

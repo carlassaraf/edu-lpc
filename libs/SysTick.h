@@ -8,23 +8,15 @@
 #ifndef SYSTICK_H_
 #define SYSTICK_H_
 
-/*  SysTick includes  */
-
+/* SysTick includes */
 #include "LPC845.h"
 
-/*  Class definition  */
-
+/* Class definition */
 class Tick {
 
 	public:
-
+		/* Constructors */
 		Tick(uint32_t us, void (*f)(void));
-		uint32_t getTickCounter(void);
-
-	private:
-
-		uint32_t tickCounter;
-		bool tickDone;
 };
 
 #endif /* SYSTICK_H_ */
