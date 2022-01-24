@@ -66,8 +66,14 @@ class ADC {
  * @retval None.
  */
 inline void ADC::select(void) {
+	/* Disable Sequence A prior change */
+	ADC0->SEQ_CTRL[SEQA] &= ~ADC_SEQ_CTRL_SEQ_ENA_MASK;
+	/* Clear Sequence A channels */
+	ADC0->SEQ_CTRL[SEQA] &= ~ADC_SEQ_CTRL_CHANNELS_MASK;
 	/* Select the channel to convert*/
 	ADC0->SEQ_CTRL[SEQA] |= 1 << settings.channel;
+	/* Enable Sequence A */
+	ADC0->SEQ_CTRL[SEQA] |= ADC_SEQ_CTRL_SEQ_ENA_MASK;
 }
 
 /*!
@@ -81,7 +87,7 @@ inline void ADC::select(void) {
  */
 inline void ADC::start(void) {
 	/* Software trigger conversion */
-	ADC0->SEQ_CTRL[SEQA] |= 0x04000000;
+	ADC0->SEQ_CTRL[SEQA] |= ADC_SEQ_CTRL_START_MASK;
 }
 
 /*!

@@ -24,7 +24,7 @@ ADC::ADC(uint8_t channel) {
 	/* Enable clock for SWM */
 	CLOCK_EnableClock(kCLOCK_Swm);
 	/* Set fixed function on the pin associated with the channel */
-	SWM_SetFixedPinSelect(SWM0, (swm_select_fixed_pin_t)(kSWM_ADC_CHN0 + channel), true);
+	SWM_SetFixedPinSelect(SWM0, (swm_select_fixed_pin_t)(kSWM_ADC_CHN0 << channel), true);
 	/* Disable clock for SWM */
 	CLOCK_DisableClock(kCLOCK_Swm);
 	/* Enable clock for ADC0 */
