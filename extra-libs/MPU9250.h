@@ -11,6 +11,7 @@
 
 /* Includes */
 #include "I2C.h"
+#include "delay.h"
 
 /* Register definitions */
 
@@ -164,9 +165,6 @@
 #define YA_OFFSET_L        0x7B
 #define ZA_OFFSET_H        0x7D
 #define ZA_OFFSET_L        0x7E
-
-/* Delay inline function */
-inline void delay(uint32_t ms) { for(uint32_t n = 0; n < ms * 600; n++); }
 
 /* Enum setting classes */
 enum class ACCEL_FS_SEL {
