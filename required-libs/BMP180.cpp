@@ -18,17 +18,17 @@
  *
  * @retval None.
  */
-BMP180::BMP180(uint32_t i2cn, uint8_t mode) {
+BMP180::BMP180(uint8_t i2c, uint8_t mode) {
 
-	if (mode > BMP180_ULTRAHIGHRES) {
-		mode = BMP180_ULTRAHIGHRES;
+	if (mode > ULTRAHIGHRES) {
+		mode = ULTRAHIGHRES;
 	}
 
 	/* Creates I2C object to initialize peripherial */
-	I2C *i2cobj = new I2C(i2cn, 3000000U);
+	I2C *i2cobj = new I2C(i2c, 3000000U);
 
 	/* Gets the I2C peripherial pointer */
-	i2c = i2cobj->getI2C();
+	i2c_base = i2cobj->getI2C();
 
 	/* Free memory */
 	delete i2cobj;
@@ -57,52 +57,13 @@ void BMP180::read(void) {
 
 	B5 = computeB5(UT);
 
-	temp = calculateTemperature(UT, B5);
+	temp = calculateTemperature(B5);
 	pres = calculatePressure(UP, B5);
 	altitude = calculateAltitude(pres);
 
 	bmp180data.temperature = temp;
 	bmp180data.pressure = pres;
 	bmp180data.altitude = altitude;
-}
-
-/*!
- * @brief BMP180 getTemperature method.
-
- * Returns the temperature previously read.
- *
- * @param None.
- *
- * @retval temperature in Celsius.
- */
-float BMP180::getTemperature(void) {
-	return bmp180data.temperature;
-}
-
-/*!
- * @brief BMP180 getPressure method.
-
- * Returns the pressure previously read.
- *
- * @param None.
- *
- * @retval pressure in Pa.
- */
-int32_t BMP180::getPressure(void) {
-	return bmp180data.pressure;
-}
-
-/*!
- * @brief BMP180 getAltitude method.
-
- * Returns the altitude previously calculated.
- *
- * @param None.
- *
- * @retval altitude in meters.
- */
-float BMP180::getAltitude(void) {
-	return bmp180data.altitude;
 }
 
 /*!
@@ -116,32 +77,19 @@ float BMP180::getAltitude(void) {
  *
  * @retval true if the communication had no issues.
  */
-bool BMP180::calibrate(uint32_t i2c, uint8_t mode) {
+bool BMP180::calibrate(void) {
 
-	if (mode > BMP180_ULTRAHIGHRES) {
-		mode = BMP180_ULTRAHIGHRES;
-	}
-
-	oversampling = mode;
-
-	if (read8(0xD0) != 0x55) {
+	if (read(0xD0, 1) != 0x55) {
 		return false;
 	}
 
-	/* read calibration data */
-	bmp180calibrationData.ac1 = read16(BMP180_CAL_AC1);
-	bmp180calibrationData.ac2 = read16(BMP180_CAL_AC2);
-	bmp180calibrationData.ac3 = read16(BMP180_CAL_AC3);
-	bmp180calibrationData.ac4 = read16(BMP180_CAL_AC4);
-	bmp180calibrationData.ac5 = read16(BMP180_CAL_AC5);
-	bmp180calibrationData.ac6 = read16(BMP180_CAL_AC6);
-
-	bmp180calibrationData.b1 = read16(BMP180_CAL_B1);
-	bmp180calibrationData.b2 = read16(BMP180_CAL_B2);
-
-	bmp180calibrationData.mb = read16(BMP180_CAL_MB);
-	bmp180calibrationData.mc = read16(BMP180_CAL_MC);
-	bmp180calibrationData.md = read16(BMP180_CAL_MD);
+	int16_t *ptr;
+	ptr = &(bmp180calibrationData.ac1);
+	/* Read calibration data */
+	for(uint8_t reg = BMP180_CAL_AC1; reg < 0xBF; reg += 0x02) {
+		*ptr = read(reg, 2);
+		ptr ++;
+	}
 
 	return true;
 }
@@ -157,9 +105,9 @@ bool BMP180::calibrate(uint32_t i2c, uint8_t mode) {
  */
 uint16_t BMP180::readRawTemperature(void) {
 
-	write8(BMP180_CONTROL, BMP180_READTEMPCMD);
-	for(uint32_t i = 0 ; i < 100000 ; i++);
-	return read16(BMP180_TEMPDATA);
+	write(BMP180_CONTROL, BMP180_READTEMPCMD);
+	delay(10);
+	return read(BMP180_TEMPDATA, 2);
 }
 
 /*!
@@ -191,25 +139,17 @@ uint32_t BMP180::readRawPressure(void) {
 
 	uint32_t raw;
 
-	write8(BMP180_CONTROL, BMP180_READPRESSURECMD + (oversampling << 6));
+	write(BMP180_CONTROL, BMP180_READPRESSURECMD + (oversampling << 6));
 
-	if (oversampling == BMP180_ULTRALOWPOWER) {
-		for(uint32_t i = 0 ; i < 100000 ; i++);
-	}
-	else if (oversampling == BMP180_STANDARD) {
-		for(uint32_t i = 0 ; i < 200000 ; i++);
-	}
-	else if (oversampling == BMP180_HIGHRES) {
-		for(uint32_t i = 0 ; i < 400000 ; i++);
-	}
-	else {
-		for(uint32_t i = 0 ; i < 800000 ; i++);
-	}
+	if (oversampling == ULTRALOWPOWER) { delay(5); }
+	else if (oversampling == STANDARD) { delay(8); }
+	else if (oversampling == HIGHRESOLUTION) { delay(14); }
+	else { delay(27); }
 
-	raw = read16(BMP180_PRESSUREDATA);
+	raw = read(BMP180_PRESSUREDATA, 2);
 
 	raw <<= 8;
-	raw |= read8(BMP180_PRESSUREDATA + 2);
+	raw |= read(BMP180_PRESSUREDATA + 2, 1);
 	raw >>= (8 - oversampling);
 	return raw;
 }
@@ -224,7 +164,7 @@ uint32_t BMP180::readRawPressure(void) {
  *
  * @retval temperature.
  */
-float BMP180::calculateTemperature(int32_t UT, int32_t B5) {
+float BMP180::calculateTemperature(int32_t B5) {
 
 	float temp = (B5 + 8) >> 4;
 	temp /= 10;
@@ -290,72 +230,41 @@ float BMP180::calculateAltitude(int32_t pressure, float sealevelPressure) {
 	return altitude;
 }
 
-/*!
- * @brief BMP180 read8 private method.
 
- * Reads a byte from the BMP180.
+/*!
+ * @brief BMP180 read private method.
+
+ * Reads a number of bytes from the BMP180.
  *
  * @param reg register to read.
  *
- * @retval 8-bit value from the register.
+ * @retval 16-bit or 8-bit value from the registers.
  */
-uint8_t BMP180::read8(uint8_t reg) {
-
-	uint8_t ret;
-
-	/* Write Address and RW bit to data register */
-	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Write & 1u);
-	/* Start the transfer */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
-	I2C_MasterWriteBlocking(i2c, &reg, 1, kI2C_TransferDefaultFlag);
-	/* Stop transfer */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
-
-	/* Write Address and RW bit to data register */
-	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Read & 1u);
-	/* Start the transfer */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
-	I2C_MasterReadBlocking(i2c, &ret, 1, kI2C_TransferDefaultFlag);
-	/* Stop transfer */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
-
-	return ret;
-}
-
-/*!
- * @brief BMP180 read16 private method.
-
- * Reads two bytes from the BMP180.
- *
- * @param reg register to read.
- *
- * @retval 16-bit value from the two registers.
- */
-uint16_t BMP180::read16(uint8_t reg) {
-
+uint16_t BMP180::read(uint8_t reg, uint8_t size) {
+	/* Array to store the data */
 	uint8_t retbuf[2];
-
 	/* Write Address and RW bit to data register */
-	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Write & 1u);
+	i2c_base->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Write & 1u);
 	/* Start the transfer */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
-	I2C_MasterWriteBlocking(i2c, &reg, 1, kI2C_TransferDefaultFlag);
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	/* Access register */
+	I2C_MasterWriteBlocking(i2c_base, &reg, 1, kI2C_TransferDefaultFlag);
 	/* Stop transfer */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
-
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
 	/* Write Address and RW bit to data register */
-	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Read & 1u);
+	i2c_base->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Read & 1u);
 	/* Start the transfer */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
-	I2C_MasterReadBlocking(i2c, retbuf, 2, kI2C_TransferDefaultFlag);
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	/* Read two bytes */
+	I2C_MasterReadBlocking(i2c_base, retbuf, size, kI2C_TransferDefaultFlag);
 	/* Stop transfer */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
-
-	return (retbuf[0] << 8) | retbuf[1];
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
+	/* Return 16-bit value or 8-bit value */
+	return (size == 2)? (retbuf[0] << 8) | retbuf[1] : (retbuf[0]);
 }
 
 /*!
- * @brief BMP180 write8 private method.
+ * @brief BMP180 write private method.
 
  * Writes a byte to the BMP180.
  *
@@ -364,15 +273,15 @@ uint16_t BMP180::read16(uint8_t reg) {
  *
  * @retval communication status.
  */
-status_t BMP180::write8(uint8_t reg, uint8_t data) {
-
+void BMP180::write(uint8_t reg, uint8_t data) {
+	/* Array to send */
 	uint8_t buf[] = { reg, data };
 	/* Write Address and RW bit to data register */
-	i2c->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Write & 1u);
+	i2c_base->MSTDAT = ((uint32_t)BMP180_ADDRESS << 1) | ((uint32_t)kI2C_Write & 1u);
 	/* Start the transfer */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTART_MASK;
 	/* Write register */
-	I2C_MasterWriteBlocking(i2c, buf, 2, kI2C_TransferDefaultFlag);
+	I2C_MasterWriteBlocking(i2c_base, buf, 2, kI2C_TransferDefaultFlag);
 	/* initiate NAK and stop */
-	i2c->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
+	i2c_base->MSTCTL = I2C_MSTCTL_MSTSTOP_MASK;
 }
