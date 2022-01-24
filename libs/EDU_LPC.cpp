@@ -7,333 +7,581 @@
 
 #include <EDU_LPC.h>
 
-uint8_t rxBuffer[5];
-uint8_t rxIndex = 0;
-uint8_t	rxSize;
-bool rxDone = false;
+/* Initialization of static variables */
+uint8_t EDU_LPC::rxBuffer[8] = {0};
+uint8_t EDU_LPC::rxIndex = 0;
+uint8_t	EDU_LPC::rxSize = 0;
+bool EDU_LPC::rxDone = false;
 
-USART serial(1, 115200);
+/*!
+ * @brief EDU LPC constructor.
 
-Pin *gpio[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-ADC *adc[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-DAC *dac[] = { nullptr, nullptr };
-
-PWM *pwm[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-
-LM35 lm(1);
-DAC analogOut(1);
-BMP180 bmp;
-
-void init(void) {
-
-	serial.assignPins(0, 1);
-	serial.attachInterrupt(cmd_reception);
-	dac[1] = &analogOut;
+ * Creates a EDU LPC object and does the calibration
+ * and handles the initialization of all the peripherials.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+EDU_LPC::EDU_LPC(void) {
+	/* Initialize USART instance */
+	USART *serial = new USART(1);
+	/* Attach the RX interrupt */
+	serial->attachInterrupt(serialRx);
+	/* Free memory */
+	delete serial;
 }
 
-void com_handler(void) {
+/*!
+ * @brief EDU LPC handler method.
 
+ * Checks if a command was received and calls
+ * the proper method to execute it.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+void EDU_LPC::handler(void) {
+	/* Check if the communication is done */
 	if(rxDone) {
-
-		uint8_t checksum = calculate_checksum(rxBuffer, rxIndex - 1);
+		/* Auxiliary variables */
 		uint16_t val;
 		uint32_t freq, duty;
-
-		if(checksum == rxBuffer[rxIndex - 1]) {
-
-			switch (rxBuffer[CMD_INDEX]) {
-
-				case kcmd_config:
-					cmd_config(rxBuffer[DATA1_INDEX], rxBuffer[DATA2_INDEX]);
+		/* Calculate checksum */
+		uint8_t checksum = calculateChecksum(rxBuffer, rxIndex);
+		/* Verify if data is valid*/
+		if(checksum == rxBuffer[rxIndex]) {
+			/* Check command received */
+			switch ((EDU_LPC_CMD)rxBuffer[CMD_INDEX]) {
+				/* GPIO config command */
+				case EDU_LPC_CMD::config:
+					/* Configure pin according to function */
+					cmdConfig(rxBuffer[DATA1_INDEX], (EDU_LPC_CONFIG)rxBuffer[DATA2_INDEX]);
 					break;
-
-				case kcmd_gpio_clear:
-					cmd_gpio_clear(rxBuffer[DATA1_INDEX]);
+				/* GPIO clear command */
+				case EDU_LPC_CMD::gpio_clear:
+					/* Clear selected pin */
+					cmdGpioClr(rxBuffer[DATA1_INDEX]);
 					break;
-
-				case kcmd_gpio_set:
-					cmd_gpio_set(rxBuffer[DATA1_INDEX]);
+				/* GPIO set command */
+				case EDU_LPC_CMD::gpio_set:
+					/* Set selected pin */
+					cmdGpioSet(rxBuffer[DATA1_INDEX]);
 					break;
-
-				case kcmd_gpio_toggle:
-					cmd_gpio_toggle(rxBuffer[DATA1_INDEX]);
+				/* GPIO toggle command */
+				case EDU_LPC_CMD::gpio_toggle:
+					/* Toggle selected pin */
+					cmdGpioToggle(rxBuffer[DATA1_INDEX]);
 					break;
-
-				case kcmd_adc_read:
-					cmd_adc_read(rxBuffer[DATA1_INDEX]);
+				/* GPIO status command */
+				case EDU_LPC_CMD::gpio_read:
+					/* Read pin state and send data */
+					cmdGpioRead(rxBuffer[DATA1_INDEX]);
 					break;
-
-				case kcmd_lm35_c:
-					cmd_lm35(kcmd_lm35_c, lm.getTemperatureCelsius());
+				/* ADC read command */
+				case EDU_LPC_CMD::adc_read:
+					/* Read ADC channel and send data*/
+					cmdAdcRead(rxBuffer[DATA1_INDEX]);
 					break;
-
-				case kcmd_lm35_f:
-					cmd_lm35(kcmd_lm35_f, lm.getTemperatureFahrenheit());
+				/* LM35 read temperature Celsius */
+				case EDU_LPC_CMD::lm35_c:
+					/* Update LM35 data and send data */
+					cmdLm35(EDU_LPC_CMD::lm35_c);
 					break;
-
-				case kcmd_dac_set:
-					val = ((uint16_t)rxBuffer[DATA2_INDEX] << 2) + rxBuffer[DATA3_INDEX];
-					cmd_dac_set(rxBuffer[DATA1_INDEX], val);
+				/* LM35 read temperature Fahrenheit */
+				case EDU_LPC_CMD::lm35_f:
+					/* Update LM35 data and send data */
+					cmdLm35(EDU_LPC_CMD::lm35_f);
 					break;
-
-				case kcmd_dac_sine:
-					val = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
-					cmd_dac_sine(rxBuffer[DATA1_INDEX], freq);
+				/* DAC set value command */
+				case EDU_LPC_CMD::dac_set:
+					/* Get 10-bit value to set in DAC */
+					val = _8bit_to_16bit(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
+					/* Set DAC value */
+					cmdDacSet(rxBuffer[DATA1_INDEX], val);
 					break;
-
-				case kcmd_dac_triangular:
-					val = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
-					cmd_dac_triangular(rxBuffer[DATA1_INDEX], freq);
+				/* DAC sine wave command */
+				case EDU_LPC_CMD::dac_sine:
+					/* Build 16-bit frequency value */
+					freq = _8bit_to_16bit(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
+					/* Generate sine wave with the given frequency */
+					cmdDacSine(rxBuffer[DATA1_INDEX], freq);
 					break;
-
-				case kcmd_dac_wave:
-					cmd_dac_wave(rxBuffer[DATA1_INDEX], (bool)rxBuffer[DATA2_INDEX]);
+				/* DAC triangular wave command */
+				case EDU_LPC_CMD::dac_triangular:
+					/* Build 16-bit frequency value */
+					freq = _8bit_to_16bit(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
+					/* Generate triangular wave with the given frequency */
+					cmdDacTriangular(rxBuffer[DATA1_INDEX], freq);
 					break;
-
-				case kcmd_pwm_config:
-					freq = _8BIT_TO_16BIT_(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
+				/* DAC wave enable command */
+				case EDU_LPC_CMD::dac_wave:
+					/* Start or stop DAC timer depending on the command */
+					cmdDacWave(rxBuffer[DATA1_INDEX], (bool)rxBuffer[DATA2_INDEX]);
+					break;
+				/* PWM configuration command */
+				case EDU_LPC_CMD::pwm_config:
+					/* Build 16-bit frequency value */
+					freq = _8bit_to_16bit(rxBuffer[DATA2_INDEX], rxBuffer[DATA3_INDEX]);
+					/* Get duty cycle value */
 					duty = rxBuffer[DATA4_INDEX];
-					cmd_pwm_config(rxBuffer[DATA1_INDEX], freq, duty);
+					/* Configure PWM with given settings */
+					cmdPwmConfig(rxBuffer[DATA1_INDEX], freq, duty);
 					break;
-
-				case kcmd_bmp_read:
-					cmd_bmp_read();
+				/* BMP180 read command */
+				case EDU_LPC_CMD::bmp_read:
+					/* Update BMP180 data and send */
+					cmdBmpRead();
 					break;
 			}
 		}
+		/* Reset buffer index */
 		rxIndex = 0;
+		/* Clear flag */
 		rxDone = false;
 	}
 }
 
-void cmd_config(uint8_t pin, uint8_t function) {
+/*!
+ * @brief EDU LPC cmdConfig method.
 
+ * Handles the configuration command and sets one
+ * of the available GPIO to either INPUT, OUTPUT,
+ * ADC channel, DAC output or PWM output.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdConfig(uint8_t pin, EDU_LPC_CONFIG function) {
+	/* Calculate ADC channel and array index */
 	int index = pin - GPIO_START_INDEX;
 	int channel = ADC_LAST_CHANNEL - index;
-
-	if(function == kconfig_input || function == kconfig_output) {
-
-		// Free memory from other objects
-		delete adc[index];
-		delete pwm[index];
-		adc[index] = nullptr;
-		pwm[index] = nullptr;
+	/* Create a Pin instance */
+	if(function == EDU_LPC_CONFIG::input || function == EDU_LPC_CONFIG::output) {
+		/* Free memory of conflicting objects */
+		delete adc[index - 1];
+		/* Delete pointer */
+		adc[index - 1] = nullptr;
+		/* Only for PWM0-3 */
+		if(index < 4) {
+			/* Free memory and delete pointer */
+			delete pwm[index];
+			pwm[index] = nullptr;
+		}
+		/* Only for PIO0_17 */
 		if(pin == DAC0_PIN_INDEX) {
+			/* Free memory and delete pointer */
 			delete dac[0];
 			dac[0] = nullptr;
 		}
-
-		// Allocate new memory
-		gpio[index] = new Pin(pin, function);
+		/* Allocate memory for a Pin instance */
+		Pin *gpio = new Pin(pin, (uint8_t)function);
+		/* Free memory */
+		delete gpio;
 		return;
 	}
-
-	if(function == kconfig_adc) {
-
-		// Free memory from other objects
-		delete gpio[index];
+	/* Create an ADC instance */
+	else if(function == EDU_LPC_CONFIG::adc) {
+		/* Delete conflicting objects */
 		delete pwm[index];
-		gpio[index] = nullptr;
+		/* Delete pointer */
 		pwm[index] = nullptr;
+		/* Only for PIO0_17 */
 		if(pin == DAC0_PIN_INDEX) {
+			/* Free memory and delete pointer */
 			delete dac[0];
 			dac[0] = nullptr;
 		}
-
-		// Allocate new memory
-		adc[index] = new ADC(channel);
-		return;
+		/* Allocate memory for a new ADC instance */
+		adc[index - 1] = new ADC(channel);
 	}
-
-	if(function == kconfig_dac) {
-
-		// Free memory from other objects
-		delete gpio[index];
-		delete adc[index];
-		delete pwm[index];
-		gpio[index] = nullptr;
-		adc[index] = nullptr;
-		pwm[index] = nullptr;
-
-		// Allocate new memory
-		dac[0] = new DAC(0);
-		return;
+	/* Create a DAC instance */
+	else if(function == EDU_LPC_CONFIG::dac) {
+		/* Free memory of conflicting objects */
+		delete adc[index - 1];
+		/* Delete pointer */
+		adc[index - 1] = nullptr;
+		/* Only for PWM0-3 */
+		if(index < 4) {
+			/* Free memory and delete pointer */
+			delete pwm[index];
+			pwm[index] = nullptr;
+		}
+		/* Allocate memory for a new DAC instance */
+		dac[0] = new DAC(0UL);
 	}
-
-	if(function == kconfig_pwm) {
-		
-		// Free memory from other objects
-		delete gpio[index];
-		delete adc[index];
-		gpio[index] = nullptr;
-		adc[index] = nullptr;
+	/* Create a PWM instance */
+	else if(function == EDU_LPC_CONFIG::pwm) {
+		/* Free memory of conflicting object */
+		delete adc[index - 1];
+		/* Delete pointer */
+		adc[index - 1] = nullptr;
+		/* Only for PIO0_17 */
 		if(pin == DAC0_PIN_INDEX) {
+			/* Free memory and delete pointer */
 			delete dac[0];
 			dac[0] = nullptr;
 		}
-		
-		// Allocate new memory
-		pwm[index] = new PWM(pin);		
-		return;
+		/* Allocate memory for a new PWM instance */
+		pwm[index] = new PWM(pin);
 	}
 }
 
-void cmd_gpio_clear(uint8_t pin) {
-	gpio[pin - 16]->clear();
+/*!
+ * @brief EDU LPC cmdGpioClr method.
+
+ * Clears one of the available GPIO.
+ *
+ * @param pin index of the pin used.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdGpioClr(uint8_t pin) {
+	/* Low level pin clear */
+	GPIO->CLR[0] |= 1UL << pin;
 }
 
-void cmd_gpio_set(uint8_t pin) {
-	gpio[pin - 16]->set();
+/*!
+ * @brief EDU LPC cmdGpioSet method.
+
+ * Sets one of the available GPIO.
+ *
+ * @param pin index of the pin used.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdGpioSet(uint8_t pin) {
+	/* Low level pin set */
+	GPIO->SET[0] |= 1UL << pin;
 }
 
-void cmd_gpio_toggle(uint8_t pin) {
-	gpio[pin - 16]->toggle();
+/*!
+ * @brief EDU LPC cmdGpioToggle method.
+
+ * Toggles one of the available GPIO.
+ *
+ * @param pin index of the pin used.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdGpioToggle(uint8_t pin) {
+	/* Low level pin toggle */
+	GPIO->NOT[0] |= 1UL << pin;
 }
 
-void cmd_adc_read(uint8_t channel) {
+/*!
+ * @brief EDU LPC cmdGpioRead method.
 
-	uint32_t value = adc[ADC_LAST_CHANNEL - channel]->read();
-	uint8_t low = value & 0xff;
-	uint8_t high = value >> 8;
-
+ * Returns the value of one of the available
+ * GPIO.
+ *
+ * @param pin index of the pin to be used.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdGpioRead(uint8_t pin) {
+	/* Build two byte buffer */
 	uint8_t buff[] = {
-			kcmd_adc_read,
+		/* GPIO status command */
+		(uint8_t)EDU_LPC_CMD::gpio_read,
+		/* Selected pin state */
+		GPIO->B[0][pin]
+	};
+	/* Build the full buffer and send */
+	buildBuffer(buff, 2);
+}
+
+/*!
+ * @brief EDU LPC cmdAdcRead method.
+
+ * Reads the requested ADC channel and
+ * sends the result via USART.
+ *
+ * @param channel index of the channel to be used.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdAdcRead(uint8_t channel) {
+	/* Check if the ADC instance was created */
+	if(adc[ADC_LAST_CHANNEL - channel] == nullptr) {
+		return;
+	}
+	/* Get ADC value */
+	uint16_t value = adc[ADC_LAST_CHANNEL - channel]->read();
+	/* Get low value */
+	uint8_t low = value & 0xff;
+	/* Get high value */
+	uint8_t high = value >> 8;
+	/* Build buffer */
+	uint8_t buff[] = {
+			/* ADC read command */
+			(uint8_t)EDU_LPC_CMD::adc_read,
+			/* 4-bit high value */
 			high,
+			/* 8-bit low value */
 			low
 	};
-	dataHandler(buff, 3);
+	/* Build the full buffer and send */
+	buildBuffer(buff, 3);
 }
 
-void cmd_lm35(cmd_codes cmd, float temp) {
+/*!
+ * @brief EDU LPC cmdLm35 method.
 
-	uint8_t high = (uint8_t)temp;
-	uint8_t low = (temp - high) * 100;
-
-	uint8_t buff[] = {
-		cmd,
-		high,
-		low
-	};
-	dataHandler(buff, 3);
-}
-
-void cmd_dac_set(uint8_t channel, uint32_t value) {
-
-	if(dac[channel] == nullptr) {
-		return;
-	}
-
-	dac[channel]->set(value);
-}
-
-void cmd_dac_sine(uint8_t channel, uint32_t frequency) {
-
-	if(dac[channel] == nullptr) {
-		return;
-	}
-
-	dac[channel]->sine(frequency);
-	dac[channel]->getTimer()->stop();
-}
-
-void cmd_dac_triangular(uint8_t channel, uint32_t frequency) {
-
-	if(dac[channel] == nullptr) {
-		return;
-	}
-
-	dac[channel]->triangular(frequency);
-	dac[channel]->getTimer()->stop();
-}
-
-void cmd_dac_wave(uint8_t channel, bool enable) {
-
-	if(dac[channel] == nullptr) {
-		return;
-	}
-	if(enable) {
-		dac[channel]->getTimer()->reset();
-		dac[channel]->getTimer()->start();
+ * Updates the LM35 data and sends the
+ * temperature in Celsius or Fahrenheit
+ * via USART.
+ *
+ * @param cmd whether the user asked the
+ * temperature in Celsius or Fahrenheit.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdLm35(EDU_LPC_CMD cmd) {
+	/* Update LM35 data */
+	lm->update();
+	/* Temperature variable */
+	float temp;
+	/* Check command */
+	if(cmd == EDU_LPC_CMD::lm35_c) {
+		/* Get temperature in Celsius */
+		temp = lm->getTempC();
 	}
 	else {
+		/* Get temperature in Fahrenheit */
+		temp = lm->getTempF();
+	}
+	/* Get the integer value of the temperature */
+	uint8_t high = (uint8_t)temp;
+	/* Get the decimal value of the temperature */
+	uint8_t low = (temp - high) * 100;
+	/* Build buffer */
+	uint8_t buff[] = {
+		/* LM35 read command */
+		(uint8_t)cmd,
+		/* Integer value */
+		high,
+		/* Decimal value */
+		low
+	};
+	/* Build full buffer and send */
+	buildBuffer(buff, 3);
+}
+
+/*!
+ * @brief EDU LPC cmdDacSet method.
+
+ * Sets a value to the requested DAC output.
+ *
+ * @param channel index of the output to be used.
+ * @param value to be set.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdDacSet(uint8_t channel, uint16_t value) {
+	/* Check if there is a DAC instance to use */
+	if(dac[channel] != nullptr) {
+		/* Set DAC value */
+		dac[channel]->set(value);
+	}
+}
+
+/*!
+ * @brief EDU LPC cmdDacSine method.
+
+ * Configurates a sine wave to be outputted
+ * in the requested DAC channel.
+ *
+ * @param channel index of the output to be used.
+ * @param frequency of the sine wave.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdDacSine(uint8_t channel, uint32_t frequency) {
+	/* Check if there is a DAC instance to use */
+	if(dac[channel] != nullptr) {
+		/* Configure sine wave with given frequency */
+		dac[channel]->sine(frequency);
+		/* Stop DAC timer */
 		dac[channel]->getTimer()->stop();
 	}
 }
 
-void cmd_pwm_config(uint32_t channel, uint32_t frequency, uint32_t duty) {
+/*!
+ * @brief EDU LPC cmdDacTriangular method.
 
-	if(pwm[channel] == nullptr) {
-		return;
+ * Configurates a triangular wave to be outputted
+ * in the requested DAC channel.
+ *
+ * @param channel index of the output to be used.
+ * @param frequency of the triangular wave.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdDacTriangular(uint8_t channel, uint32_t frequency) {
+	/* Check if there is a DAC instance to use */
+	if(dac[channel] != nullptr) {
+		/* Configure triangular wave with given frequency */
+		dac[channel]->triangular(frequency);
+		/* Stop DAC timer */
+		dac[channel]->getTimer()->stop();
 	}
-
-	if(pwm[channel]->getFrequency() != frequency) {
-
-		int i = 0;
-		while(pwm[i] != nullptr) {
-			pwm[i]->setFrequency(frequency);
-			i++;
-		}
-	}
-
-	if(pwm[channel]->getDuty() != duty) { pwm[channel]->setDuty(duty); }
 }
 
-void cmd_bmp_read(void) {
+/*!
+ * @brief EDU LPC cndDacWave method.
 
-	bmp.read();
-	float temp = bmp.getTemperature();
-	int32_t pres = bmp.getPressure();
+ * Enables or disables the wave output in the
+ * requested DAC channel.
+ *
+ * @param channel index of the output to be used.
+ * @param enable whether the output is enabled or not.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdDacWave(uint8_t channel, bool enable) {
+	/* Check if there is a DAC instance to use */
+	if(dac[channel] != nullptr) {
+		/* Check if user wants to enable the wave output */
+		if(enable) {
+			/* Reset DAC timer counter */
+			dac[channel]->getTimer()->reset();
+			/* Start DAC timer counter */
+			dac[channel]->getTimer()->start();
+		}
+		else {
+			/* Stop DAC timer counter */
+			dac[channel]->getTimer()->stop();
+		}
+	}
+}
 
+/*!
+ * @brief EDU LPC cmdPwmConfig method.
+
+ * Configurates a PWM output with the requested
+ * settings in one of the available channels.
+ *
+ * @param channel index of the PWM output to be used.
+ * @param frequency of the PWM signal.
+ * @param duty cycle percentage of the PWM signal.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdPwmConfig(uint8_t channel, uint32_t frequency, uint8_t duty) {
+	/* Check if there is a PWM instance to use */
+	if(pwm[channel] != nullptr) {
+		/* Check if the current frequency is different */
+		if(pwm[channel]->getFrequency() != frequency) {
+			/* Change all the available PWM frequencies to the given one */
+			int i = 0;
+			while(pwm[i] != nullptr) {
+				/* Set new frequency */
+				pwm[i]->setFrequency(frequency);
+				i++;
+			}
+		}
+		/* Check if the current duty is different */
+		if(pwm[channel]->getDuty() != duty) {
+			/* Change duty cycle with the given one */
+			pwm[channel]->setDuty(duty);
+		}
+	}
+}
+
+/*!
+ * @brief EDU LPC cmdBmpRead method.
+
+ * Updates the BMP180 values and sends the pressure
+ * and temperature via USART.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdBmpRead(void) {
+	/* Update BMP180 values */
+	bmp->read();
+	/* Get temperature value */
+	float temp = bmp->getTemperature();
+	/* Get pressure value */
+	int32_t pres = bmp->getPressure();
+	/* Separate pressure in 3 bytes */
 	uint8_t presHigh = (pres & 0xff0000) >> 16;
 	uint8_t presMid = (pres & 0xff00) >> 8;
 	uint8_t presLow = pres & 0xff;
-
+	/* Get integer and decimal temperature values */
 	uint8_t tempHigh = (uint8_t)temp;
 	uint8_t tempLow = (temp - tempHigh) * 100;
-
+	/* Build buffer */
 	uint8_t buff[] = {
-		kcmd_bmp_read,
+		/* BMP180 read command */
+		(uint8_t)EDU_LPC_CMD::bmp_read,
+		/* Upper 8-bit pressure value */
 		presHigh,
+		/* Middle 8-bit pressure value */
 		presMid,
+		/* Lower 8-bit pressure value */
 		presLow,
+		/* Integer temperature value */
 		tempHigh,
+		/* Decimal temperature value */
 		tempLow
 	};
-	dataHandler(buff, 6);
+	/* Build full buffer and send */
+	buildBuffer(buff, 6);
 }
 
-uint8_t calculate_checksum(uint8_t *data, uint8_t size) {
+/*!
+ * @brief EDU LPC calculateChecksum method.
 
+ * Calculates the checksum of the incoming buffer.
+ *
+ * @param data pointer to the received buffer.
+ * @param size number of bytes to use in the calculation.
+ *
+ * @retval checksum value.
+ */
+uint8_t EDU_LPC::calculateChecksum(uint8_t *data, uint8_t size) {
+	/* Checksum variable */
 	uint16_t checksum = 0;
-    // Checksum calculation starts after the length byte
+	/* Checksum calculation starts after the length byte */
 	for(int i = 1; i < size; i++) {
-
+		/* Add up every byte */
 		checksum += data[i];
 	}
+	/* Get the lower 8-bit data */
 	checksum &= 0xff;
+	/* Return checksum value */
 	return 0xff - checksum;
 }
 
-void dataHandler(uint8_t *data, uint8_t size) {
+/*!
+ * @brief EDU LPC buildBuffer method.
 
+ * Copies the data to be sent in a new buffer adding
+ * a header and checksum bytes and then sends it via USART.
+ *
+ * @param data pointer to the buffer to be sent.
+ * @param size number of bytes to copy in the new buffer.
+ *
+ * @retval None.
+ */
+void EDU_LPC::buildBuffer(uint8_t *data, uint8_t size) {
+	/* Get the header byte */
 	uint8_t header = size + 1;
+	/* Create new buffer */
 	uint8_t buff[header + 1];
-
+	/* Store header */
 	buff[0] = header;
+	/* Copy the data on the buffer */
 	for(int i = 0; i < size; i++) {
 		buff[i + 1] = data[i];
 	}
-	buff[header] = calculate_checksum(buff, header);
-
-	serial.print(buff);
-}
-
-void cmd_reception(void) {
-
-	rxBuffer[rxIndex++] = serial.read();
-
-	// Check if communication is done
-	if(rxIndex > rxBuffer[0]) {
-		rxDone = true;
-	}
+	/* Get the checksum value */
+	buff[header] = calculateChecksum(buff, header);
+	/* Send buffer via polling */
+	USART_WriteBlocking(USART1, buff, buff[0]);
 }
