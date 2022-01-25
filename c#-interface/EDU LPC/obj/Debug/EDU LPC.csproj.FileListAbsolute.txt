@@ -1,0 +1,10 @@
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\obj\Debug\EDU_LPC.EDU_LPC.resources
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\obj\Debug\EDU_LPC.Properties.Resources.resources
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\obj\Debug\EDU LPC.csproj.GenerateResource.cache
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\obj\Debug\EDU LPC.csproj.CoreCompileInputs.cache
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\bin\Debug\EDU LPC.exe.config
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\bin\Debug\EDU LPC.exe
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\bin\Debug\EDU LPC.pdb
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\obj\Debug\EDU LPC.exe
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\obj\Debug\EDU LPC.pdb
+D:\Facultad\Cuarto\Tecnicas Digitales II\edu-lpc-interface\EDU LPC\EDU LPC\obj\Debug\EDU LPC.csproj.AssemblyReference.cache
