@@ -7,6 +7,8 @@
 
 #include <DAC.h>
 
+/* CTimer object for every DAC channel */
+CTimer *ctimer = new CTimer();
 /* Global wave structs */
 wave_t g_wave[2] {0};
 /* Global pointers for CTimer interrupt calls */
@@ -50,7 +52,7 @@ DAC::DAC(uint8_t dac_channel) {
 	/* Disable SWM clock */
 	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);
 	/* Reserves a timer for the wave generation */
-	timer = new CTimer(1);
+	timer = ctimer;
 	/* Save channel */
 	channel = dac_channel;
 }
