@@ -32,6 +32,7 @@ class LM35 {
 		uint16_t getRaw(void);
 		float getTempC(void);
 		float getTempF(void);
+		ADC* getADC(void);
 
 	private:
 		/* ADC object pointer */
@@ -106,5 +107,16 @@ inline float LM35::getTempC(void) { return data.tempC; }
  * @retval temperature in Fahrenheit.
  */
 inline float LM35::getTempF(void) {	return data.tempF; }
+
+/*!
+ * @brief LM35 getADC method.
+
+ * Returns the associated ADC instance.
+ *
+ * @param None.
+ *
+ * @retval pointer to an ADC object.
+ */
+inline ADC* LM35::getADC(void) { return adc; }
 
 #endif /* LM35_H_ */
