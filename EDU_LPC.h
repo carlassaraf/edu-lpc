@@ -80,7 +80,8 @@ class EDU_LPC {
 
 	private:
 		/* Array pointer to class instances */
-		ADC *adc[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+		/* ADC0 (potentiometer), ADC1 (LM35), ADC3, ADC4, ADC5, ADC6, ADC7, ADC8, ADC9 */
+		ADC *adc[9] = { new ADC(0), new ADC(1), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 		DAC *dac[2] = { nullptr, new DAC(1UL) };
 		PWM *pwm[4] = { nullptr, nullptr, nullptr, nullptr };
 		/* Module instances */
