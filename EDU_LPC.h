@@ -176,7 +176,7 @@ inline Pin* EDU_LPC::getUserBtn(void) { return user; }
  *
  * @retval pointer to an ADC object.
  */
-inline ADC* getPot(void) { return adc[0]; }
+inline ADC* EDU_LPC::getPot(void) { return adc[0]; }
 
 /*!
  * @brief EDU LPC getLM35 method.
