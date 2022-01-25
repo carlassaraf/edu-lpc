@@ -73,7 +73,9 @@ class EDU_LPC {
 		Pin* getRLed(void);
 		Pin* getGLed(void);
 		Pin* getBLed(void);
+		Pin* getBtn(uint8_t index);
 		Pin* getUserBtn(void);
+		Pin* getRelay(void);
 		ADC* getPot(void);
 		LM35* getLM35(void);
 		DAC* getDAC(void);
@@ -84,11 +86,13 @@ class EDU_LPC {
 		LM35 *lm { new LM35 };
 		BMP180 *bmp { new BMP180 };
 		/* Board RGB LED */
-		Pin *gled { new Pin(32, Pin::OUTPUT, 1) };
-		Pin *bled { new Pin(33, Pin::OUTPUT, 1) };
-		Pin *rled { new Pin(34, Pin::OUTPUT, 1) };
+		Pin *rgb[3] = { new Pin(32, Pin::OUTPUT, 1), new Pin(33, Pin::OUTPUT, 1), new Pin(34, Pin::OUTPUT, 1) };
 		/* Board user button */
 		Pin *user { new Pin(4, Pin::INPUT) };
+		/* Button array */
+		Pin *btn[3] = { new Pin(8, Pin::INPUT), new Pin(9, Pin::INPUT), new Pin(13, Pin::INPUT) };
+		/* Relay output */
+		Pin *relay { new Pin(14, Pin::OUTPUT, 0) };
 		/* Array pointer to class instances */
 		/* ADC0 (potentiometer), ADC1 (LM35), ADC3, ADC4, ADC5, ADC6, ADC7, ADC8, ADC9 */
 		ADC *adc[9] = { new ADC(0), lm->getADC(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
@@ -132,7 +136,7 @@ class EDU_LPC {
  *
  * @retval pointer to a Pin object.
  */
-inline Pin* EDU_LPC::getRLed(void) { return rled; }
+inline Pin* EDU_LPC::getRLed(void) { return rgb[2]; }
 
 /*!
  * @brief EDU LPC getGLed method.
@@ -143,7 +147,7 @@ inline Pin* EDU_LPC::getRLed(void) { return rled; }
  *
  * @retval pointer to a Pin object.
  */
-inline Pin* EDU_LPC::getGLed(void) { return gled; }
+inline Pin* EDU_LPC::getGLed(void) { return rgb[0]; }
 
 /*!
  * @brief EDU LPC getBLed method.
@@ -154,7 +158,21 @@ inline Pin* EDU_LPC::getGLed(void) { return gled; }
  *
  * @retval pointer to a Pin object.
  */
-inline Pin* EDU_LPC::getBLed(void) { return bled; }
+inline Pin* EDU_LPC::getBLed(void) { return rgb[1]; }
+
+/*!
+ * @brief EDU LPC getBtn method.
+
+ * Returns a pointer to a Button pointer.
+ *
+ * @param index of the button. Posible values are:
+ * - 1 for BTN1
+ * - 2 for BTN2
+ * - 3 for BTN3
+ *
+ * @retval pointer to a Pin object.
+ */
+inline Pin* EDU_LPC::getBtn(uint8_t index) { return btn[index - 1]; }
 
 /*!
  * @brief EDU LPC getUserBtn method.
@@ -166,6 +184,17 @@ inline Pin* EDU_LPC::getBLed(void) { return bled; }
  * @retval pointer to a Pin object.
  */
 inline Pin* EDU_LPC::getUserBtn(void) { return user; }
+
+/*!
+ * @brief EDU LPC getRelay method.
+
+ * Returns a pointer to the Board relay.
+ *
+ * @param None.
+ *
+ * @retval pointer to a Pin object.
+ */
+inline Pin* EDU_LPC::getRelay(void) { return relay; }
 
 /*!
  * @brief EDU LPC getPot method.
