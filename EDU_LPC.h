@@ -74,16 +74,12 @@ class EDU_LPC {
 		Pin* getGLed(void);
 		Pin* getBLed(void);
 		Pin* getUserBtn(void);
+		ADC* getPot(void);
 		LM35* getLM35(void);
 		DAC* getDAC(void);
 		BMP180* getBMP180(void);
 
 	private:
-		/* Array pointer to class instances */
-		/* ADC0 (potentiometer), ADC1 (LM35), ADC3, ADC4, ADC5, ADC6, ADC7, ADC8, ADC9 */
-		ADC *adc[9] = { new ADC(0), new ADC(1), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-		DAC *dac[2] = { nullptr, new DAC(1UL) };
-		PWM *pwm[4] = { nullptr, nullptr, nullptr, nullptr };
 		/* Module instances */
 		LM35 *lm { new LM35 };
 		BMP180 *bmp { new BMP180 };
@@ -93,6 +89,12 @@ class EDU_LPC {
 		Pin *rled { new Pin(34, Pin::OUTPUT, 1) };
 		/* Board user button */
 		Pin *user { new Pin(4, Pin::INPUT) };
+		/* Array pointer to class instances */
+		/* ADC0 (potentiometer), ADC1 (LM35), ADC3, ADC4, ADC5, ADC6, ADC7, ADC8, ADC9 */
+		ADC *adc[9] = { new ADC(0), lm->getADC(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+		DAC *dac[2] = { nullptr, new DAC(1UL) };
+		/* PWM0 to PWM3 in GPIO0 to GPIO3 */
+		PWM *pwm[4] = { nullptr, nullptr, nullptr, nullptr };
 		/* Command handlers */
 		void cmdConfig(uint8_t pin, EDU_LPC_CONFIG function);
 		void cmdGpioClr(uint8_t pin);
@@ -164,6 +166,17 @@ inline Pin* EDU_LPC::getBLed(void) { return bled; }
  * @retval pointer to a Pin object.
  */
 inline Pin* EDU_LPC::getUserBtn(void) { return user; }
+
+/*!
+ * @brief EDU LPC getPot method.
+
+ * Returns a pointer to the Board potentiometer.
+ *
+ * @param None.
+ *
+ * @retval pointer to an ADC object.
+ */
+inline ADC* getPot(void) { return adc[0]; }
 
 /*!
  * @brief EDU LPC getLM35 method.
