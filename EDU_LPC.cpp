@@ -161,9 +161,9 @@ void EDU_LPC::cmdConfig(uint8_t pin, EDU_LPC_CONFIG function) {
 	/* Create a Pin instance */
 	if(function == EDU_LPC_CONFIG::input || function == EDU_LPC_CONFIG::output) {
 		/* Free memory of conflicting objects */
-		delete adc[index + 2];
+		delete adc[channel];
 		/* Delete pointer */
-		adc[index + 2] = nullptr;
+		adc[channel] = nullptr;
 		/* Only for PWM0-3 */
 		if(index < 4) {
 			/* Free memory and delete pointer */
@@ -195,14 +195,14 @@ void EDU_LPC::cmdConfig(uint8_t pin, EDU_LPC_CONFIG function) {
 			dac[0] = nullptr;
 		}
 		/* Allocate memory for a new ADC instance */
-		adc[index + 2] = new ADC(channel);
+		adc[channel] = new ADC(channel + 1);
 	}
 	/* Create a DAC instance */
 	else if(function == EDU_LPC_CONFIG::dac) {
 		/* Free memory of conflicting objects */
-		delete adc[index + 2];
+		delete adc[channel];
 		/* Delete pointer */
-		adc[index + 2] = nullptr;
+		adc[channel] = nullptr;
 		/* Only for PWM0-3 */
 		if(index < 4) {
 			/* Free memory and delete pointer */
@@ -215,9 +215,9 @@ void EDU_LPC::cmdConfig(uint8_t pin, EDU_LPC_CONFIG function) {
 	/* Create a PWM instance */
 	else if(function == EDU_LPC_CONFIG::pwm) {
 		/* Free memory of conflicting object */
-		delete adc[index + 2];
+		delete adc[channel];
 		/* Delete pointer */
-		adc[index + 2] = nullptr;
+		adc[channel] = nullptr;
 		/* Only for PIO0_17 */
 		if(pin == DAC0_PIN_INDEX) {
 			/* Free memory and delete pointer */
@@ -304,6 +304,8 @@ void EDU_LPC::cmdGpioRead(uint8_t pin) {
  * @retval None.
  */
 void EDU_LPC::cmdAdcRead(uint8_t channel) {
+	/* Fix channel value to fit array */
+	if(channel > 1) { channel--; }
 	/* Check if the ADC instance was created */
 	if(adc[ADC_LAST_CHANNEL - channel] == nullptr) {
 		return;
