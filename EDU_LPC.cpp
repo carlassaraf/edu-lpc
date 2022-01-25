@@ -239,8 +239,9 @@ void EDU_LPC::cmdConfig(uint8_t pin, EDU_LPC_CONFIG function) {
  * @retval None.
  */
 void EDU_LPC::cmdGpioClr(uint8_t pin) {
-	/* Low level pin clear */
-	GPIO->CLR[0] |= 1UL << pin;
+	/* Check the pin index and clear the pin*/
+	if(pin < 32) { GPIO->CLR[0] |= 1UL << pin; }
+	else { GPIO->CLR[1] |= 1UL << (pin - 32); }
 }
 
 /*!
@@ -253,8 +254,9 @@ void EDU_LPC::cmdGpioClr(uint8_t pin) {
  * @retval None.
  */
 void EDU_LPC::cmdGpioSet(uint8_t pin) {
-	/* Low level pin set */
-	GPIO->SET[0] |= 1UL << pin;
+	/* Check the pin index and set the pin */
+	if(pin < 32) { GPIO->SET[0] |= 1UL << pin; }
+	else { GPIO->SET[1] |= 1UL << (pin - 32); }
 }
 
 /*!
@@ -267,8 +269,9 @@ void EDU_LPC::cmdGpioSet(uint8_t pin) {
  * @retval None.
  */
 void EDU_LPC::cmdGpioToggle(uint8_t pin) {
-	/* Low level pin toggle */
-	GPIO->NOT[0] |= 1UL << pin;
+	/* Check the pin index and toggle the pin */
+	if(pin < 32) { GPIO->NOT[0] |= 1UL << pin; }
+	else { GPIO->NOT[1] |= 1UL << (pin - 32); }
 }
 
 /*!
@@ -282,12 +285,17 @@ void EDU_LPC::cmdGpioToggle(uint8_t pin) {
  * @retval None.
  */
 void EDU_LPC::cmdGpioRead(uint8_t pin) {
+	/* Variable to store the pin value */
+	uint8_t value;
+	/* Check the pin index and get the pin value */
+	if(pin < 32) { value = GPIO->B[0][pin]; }
+	else { value = GPIO->B[1][pin - 32]; }
 	/* Build two byte buffer */
 	uint8_t buff[] = {
 		/* GPIO status command */
 		(uint8_t)EDU_LPC_CMD::gpio_read,
 		/* Selected pin state */
-		GPIO->B[0][pin]
+		value
 	};
 	/* Build the full buffer and send */
 	buildBuffer(buff, 2);
