@@ -13,6 +13,8 @@ def main():
     server_ip = argv[1]
     # Create an EDU LPC SOCK instance
     sock = EDU_LPC_SOCK(server_ip)
+    # Run app
+    sock.run()
     
 
 if __name__ == '__main__':
