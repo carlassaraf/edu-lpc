@@ -580,6 +580,12 @@ uint8_t EDU_LPC::calculateChecksum(uint8_t *data, uint8_t size) {
  * @retval None.
  */
 void EDU_LPC::buildBuffer(uint8_t *data, uint8_t size) {
+	/* Check if it's only one byte */
+	if (size < 2) {
+		/* Send buffer via polling */
+		USART_WriteBlocking(USART0, data, size);
+		return;
+	}
 	/* Get the header byte */
 	uint8_t header = size + 1;
 	/* Create new buffer */
@@ -593,5 +599,5 @@ void EDU_LPC::buildBuffer(uint8_t *data, uint8_t size) {
 	/* Get the checksum value */
 	buff[header] = calculateChecksum(buff, header);
 	/* Send buffer via polling */
-	USART_WriteBlocking(USART1, buff, buff[0]);
+	USART_WriteBlocking(USART0, buff, buff[0]);
 }

@@ -256,7 +256,7 @@ inline BMP180* EDU_LPC::getBMP180(void) { return bmp; }
  */
 inline void EDU_LPC::serialRx(void) {
 	/* Store incoming byte and increment index */
-	rxBuffer[rxIndex++] = USART1->RXDAT;
+	rxBuffer[rxIndex++] = USART0->RXDAT;
 	/* Check if the communication is done */
 	if(rxIndex > rxBuffer[0]) {
 		/* Set flag */
