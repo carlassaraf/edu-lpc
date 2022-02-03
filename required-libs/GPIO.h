@@ -15,12 +15,29 @@
 #include "fsl_syscon.h"
 #include "fsl_syscon_connections.h"
 
-/* GPIO inline functions */
-inline uint8_t getPORT(uint32_t pin) {
+/*!
+ * @brief getPORT function.
+
+ * Returns the GPIO index.
+ *
+ * @param pin index of the pin used.
+ *
+ * @retval GPIO PORT index (0-1).
+ */
+inline uint8_t getPORT(uint8_t pin) {
 	return (pin < 32)? 0 : 1;
 }
 
-inline syscon_connection_t getSYSCON_CONNECTION(uint32_t pin) {
+/*!
+ * @brief getSYSCON_CONNECTION function.
+
+ * Returns the SYSCON connection to be used.
+ *
+ * @param pin index of the pin used.
+ *
+ * @retval SYSCON connection for the pin.
+ */
+inline syscon_connection_t getSYSCON_CONNECTION(uint8_t pin) {
 	return (syscon_connection_t)(pin + (PINTSEL_ID << SYSCON_SHIFT));
 }
 
@@ -28,24 +45,22 @@ inline syscon_connection_t getSYSCON_CONNECTION(uint32_t pin) {
 class Pin {
 
 	public:
-		/* Class constants */
+		/* Pin modes */
 		static constexpr uint8_t INPUT {(uint8_t)kGPIO_DigitalInput};
 		static constexpr uint8_t OUTPUT {(uint8_t)kGPIO_DigitalOutput};
-
+		/* Pin values */
 		static constexpr uint8_t LOW {0};
 		static constexpr uint8_t HIGH {1};
-
-		/* Configuration constants */
+		/* Pin output configuration */
 		static constexpr gpio_pin_config_t configOutput = {
 		    		kGPIO_DigitalOutput,
 					1,
 		};
-
+		/* Pin input configuration */
 		static constexpr gpio_pin_config_t configInput = {
 				kGPIO_DigitalInput,
 				0,
 		};
-
 		/* PINT related constants */
 		static constexpr pint_pin_enable_t PINT_NONE = kPINT_PinIntEnableNone;
 		static constexpr pint_pin_enable_t PINT_RISE_EDGE = kPINT_PinIntEnableRiseEdge;
@@ -53,17 +68,16 @@ class Pin {
 		static constexpr pint_pin_enable_t PINT_BOTH_EDGES = kPINT_PinIntEnableBothEdges;
 		static constexpr pint_pin_enable_t PINT_LOW_LEVEL = kPINT_PinIntEnableLowLevel;
 		static constexpr pint_pin_enable_t PINT_HIGH_LEVEL = kPINT_PinIntEnableHighLevel;
-
 		/* Constructors */
-		Pin(uint32_t pin_index, const uint32_t mode);
-		Pin(uint32_t pin_index, const uint32_t mode, const uint32_t initial_value);
+		Pin(uint8_t pin_index, const uint8_t mode);
+		Pin(uint8_t pin_index, const uint8_t mode, const uint8_t initial_value);
 		/* Public methods */
-		uint32_t read();
-		void write(const uint32_t value);
+		uint8_t read();
+		void write(const uint8_t value);
 		void set(void);
 		void clear(void);
 		void toggle(void);
-		void attachInterrupt(void (*f)(void), pint_pin_enable_t pint_mode, uint32_t pint_pin_index);
+		void attachInterrupt(void (*f)(void), pint_pin_enable_t pint_mode, uint8_t pint_pin_index);
 
 
 	private:
@@ -72,10 +86,10 @@ class Pin {
 		/* Pin index 0-31 */
 		uint8_t	pin;
 		/* General initialization private method */
-		void init(uint32_t pin_index, const uint32_t mode);
+		void init(uint8_t pin_index, const uint8_t mode);
 };
 
-/* Inline class methods */
+/* Inline methods */
 
 /*!
  * @brief Pin read method.
@@ -86,10 +100,7 @@ class Pin {
  *
  * @retval pin value.
  */
-inline uint32_t Pin::read(void) {
-
-	return GPIO->B[port][pin];
-}
+inline uint8_t Pin::read(void) { return GPIO->B[port][pin]; }
 
 /*!
  * @brief Pin write method.
@@ -100,10 +111,7 @@ inline uint32_t Pin::read(void) {
  *
  * @retval None.
  */
-inline void Pin::write(const uint32_t value) {
-
-	GPIO->B[port][pin] = value;
-}
+inline void Pin::write(const uint8_t value) { GPIO->B[port][pin] = value; }
 
 /*!
  * @brief Pin set method.
@@ -114,10 +122,7 @@ inline void Pin::write(const uint32_t value) {
  *
  * @retval None.
  */
-inline void Pin::set(void) {
-
-	GPIO->SET[port] |= 1UL << pin;
-}
+inline void Pin::set(void) { GPIO->SET[port] |= 1UL << pin; }
 
 /*!
  * @brief Pin clear method.
@@ -128,10 +133,7 @@ inline void Pin::set(void) {
  *
  * @retval None.
  */
-inline void Pin::clear(void) {
-
-	GPIO->CLR[port] |= 1UL << pin;
-}
+inline void Pin::clear(void) { GPIO->CLR[port] |= 1UL << pin; }
 
 /*!
  * @brief Pin toggle method.
@@ -142,13 +144,10 @@ inline void Pin::clear(void) {
  *
  * @retval None.
  */
-inline void Pin::toggle(void) {
-
-	GPIO->NOT[port] |= 1UL << pin;
-}
+inline void Pin::toggle(void) { GPIO->NOT[port] |= 1UL << pin; }
 
 /* Extra function prototypes */
 
-void pint_callback(pint_pin_int_t pintr, uint32_t pmatch_status);
+void pint_callback(pint_pin_int_t pintr, uint8_t pmatch_status);
 
 #endif /* GPIO_H_ */
