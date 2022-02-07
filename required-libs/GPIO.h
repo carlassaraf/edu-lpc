@@ -51,16 +51,6 @@ class Pin {
 		/* Pin values */
 		static constexpr uint8_t LOW {0};
 		static constexpr uint8_t HIGH {1};
-		/* Pin output configuration */
-		static constexpr gpio_pin_config_t configOutput = {
-		    		kGPIO_DigitalOutput,
-					1,
-		};
-		/* Pin input configuration */
-		static constexpr gpio_pin_config_t configInput = {
-				kGPIO_DigitalInput,
-				0,
-		};
 		/* PINT related constants */
 		static constexpr pint_pin_enable_t PINT_NONE = kPINT_PinIntEnableNone;
 		static constexpr pint_pin_enable_t PINT_RISE_EDGE = kPINT_PinIntEnableRiseEdge;
@@ -77,7 +67,7 @@ class Pin {
 		void set(void);
 		void clear(void);
 		void toggle(void);
-		void attachInterrupt(void (*f)(void), pint_pin_enable_t pint_mode, uint8_t pint_pin_index);
+		void attachInterrupt(void (*f)(void), pint_pin_enable_t pint_mode);
 
 
 	private:
@@ -85,6 +75,16 @@ class Pin {
 		uint8_t port;
 		/* Pin index 0-31 */
 		uint8_t	pin;
+		/* Pin output configuration */
+		static constexpr gpio_pin_config_t configOutput = {
+		    		kGPIO_DigitalOutput,
+					1,
+		};
+		/* Pin input configuration */
+		static constexpr gpio_pin_config_t configInput = {
+				kGPIO_DigitalInput,
+				0,
+		};
 		/* General initialization private method */
 		void init(uint8_t pin_index, const uint8_t mode);
 };

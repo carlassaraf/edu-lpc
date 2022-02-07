@@ -10,6 +10,9 @@
 /*  PINT handler pointer  */
 void (*pint_irq_ptr[PINT_INPUT_COUNT])(void);
 
+/* Global variable to keep track of the PINT index being used */
+static uint8_t s_pint_pin_index = 0;
+
 /*!
  * @brief Pin constructor.
 
@@ -81,19 +84,21 @@ void Pin::init(uint8_t pin_index, const uint8_t mode) {
  *
  * @retval None.
  */
-void Pin::attachInterrupt(void (*f)(void), pint_pin_enable_t pint_mode, uint8_t pint_pin_index) {
+void Pin::attachInterrupt(void (*f)(void), pint_pin_enable_t pint_mode) {
 	/* Get the original pin index */
 	uint8_t pin_index = (port == 0)? pin : pin + 32;
 	/* Connect the Pin to the proper PINT channel */
-	SYSCON_AttachSignal(SYSCON, (pint_pin_int_t)pint_pin_index, getSYSCON_CONNECTION(pin_index));
+	SYSCON_AttachSignal(SYSCON, (pint_pin_int_t)s_pint_pin_index, getSYSCON_CONNECTION(pin_index));
 	/* Store the function pointer */
-	pint_irq_ptr[pint_pin_index] = f;
+	pint_irq_ptr[s_pint_pin_index] = f;
 	/* Enable PINT module */
 	PINT_Init(PINT);
 	/* PINT configuration */
-	PINT_PinInterruptConfig(PINT, (pint_pin_int_t)pint_pin_index, pint_mode, pint_callback);
+	PINT_PinInterruptConfig(PINT, (pint_pin_int_t)s_pint_pin_index, pint_mode, pint_callback);
 	/* Enable callback */
-	PINT_EnableCallbackByIndex(PINT, (pint_pin_int_t)pint_pin_index);									// Enable trigger by channel
+	PINT_EnableCallbackByIndex(PINT, (pint_pin_int_t)s_pint_pin_index);
+	/* Update PINT index */
+	s_pint_pin_index++;
 }
 
 /*  PINT Callback  */
