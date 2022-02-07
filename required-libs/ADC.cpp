@@ -65,8 +65,6 @@ uint16_t ADC::read(void) {
 		/* Return if there is */
 		return ((ADC0->DAT[settings.channel] & ADC_DAT_RESULT_MASK)) >> 4;
 	}
-	/* Select channel */
-	select();
 	/* Start conversion */
 	start();
 	/* If not, get the result when is ready */

@@ -42,21 +42,50 @@ class ADC {
 	public:
 		/* Constructors */
 		ADC(uint8_t channel = 0);
-		void select(void);
 		void start(void);
 		bool ready(void);
 		uint16_t read(void);
-		uint16_t getResult(void);
 		void attachInterrupt(void (*f)(void));
 
 	private:
 		/* Configuration data */
 		adc_user_config_t settings;
 		/* Private methods */
+		void select(void);
 		uint16_t getResult(void);
 };
 
 /* Inline methods */
+
+/*!
+ * @brief ADC start method.
+
+ * Starts the conversion.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+inline void ADC::start(void) {
+	/* Select channel to convert */
+	select();
+	/* Software trigger conversion */
+	ADC0->SEQ_CTRL[SEQA] |= ADC_SEQ_CTRL_START_MASK;
+}
+
+/*!
+ * @brief ADC ready method.
+
+ * Checks if the conversion is ready to be read.
+ *
+ * @param None.
+ *
+ * @retval true if ready, false otherwise.
+ */
+inline bool ADC::ready(void) {
+	/* Check for conversion ready flag and cast it to boolean */
+	return (bool)(ADC0->DAT[settings.channel] & ADC_DAT_DATAVALID_MASK);
+}
 
 /*!
  * @brief ADC select method.
@@ -76,34 +105,6 @@ inline void ADC::select(void) {
 	ADC0->SEQ_CTRL[SEQA] |= 1 << settings.channel;
 	/* Enable Sequence A */
 	ADC0->SEQ_CTRL[SEQA] |= ADC_SEQ_CTRL_SEQ_ENA_MASK;
-}
-
-/*!
- * @brief ADC start method.
-
- * Starts the conversion.
- *
- * @param None.
- *
- * @retval None.
- */
-inline void ADC::start(void) {
-	/* Software trigger conversion */
-	ADC0->SEQ_CTRL[SEQA] |= ADC_SEQ_CTRL_START_MASK;
-}
-
-/*!
- * @brief ADC ready method.
-
- * Checks if the conversion is ready to be read.
- *
- * @param None.
- *
- * @retval true if ready, false otherwise.
- */
-inline bool ADC::ready(void) {
-	/* Check for conversion ready flag and cast it to boolean */
-	return (bool)(ADC0->DAT[settings.channel] & ADC_DAT_DATAVALID_MASK);
 }
 
 /*!
