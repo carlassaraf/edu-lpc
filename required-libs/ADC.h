@@ -52,6 +52,8 @@ class ADC {
 	private:
 		/* Configuration data */
 		adc_user_config_t settings;
+		/* Private methods */
+		uint16_t getResult(void);
 };
 
 /* Inline methods */
@@ -102,6 +104,22 @@ inline void ADC::start(void) {
 inline bool ADC::ready(void) {
 	/* Check for conversion ready flag and cast it to boolean */
 	return (bool)(ADC0->DAT[settings.channel] & ADC_DAT_DATAVALID_MASK);
+}
+
+/*!
+ * @brief ADC getResult method.
+
+ * Returns the result of the conversion if it's ready.
+ *
+ * @param None.
+ *
+ * @retval conversion result.
+ */
+inline uint16_t ADC::getResult(void) {
+	/* Wait for the conversion to be ready */
+	while(!ready());
+	/* Return data when ready */
+	return (uint16_t)(((ADC0->DAT[settings.channel] & ADC_DAT_RESULT_MASK)) >> 4);
 }
 
 #endif /* ADC_H_ */

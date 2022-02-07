@@ -74,22 +74,6 @@ uint16_t ADC::read(void) {
 }
 
 /*!
- * @brief ADC getResult method.
-
- * Returns the result of the conversion if it's ready.
- *
- * @param None.
- *
- * @retval conversion result.
- */
-uint16_t ADC::getResult(void) {
-	/* Wait for the conversion to be ready */
-	while(!ready());
-	/* Return data when ready */
-	return (uint16_t)(((ADC0->DAT[settings.channel] & ADC_DAT_RESULT_MASK)) >> 4);
-}
-
-/*!
  * @brief ADC attachInterrupt method.
 
  * Attach a function as a ADC interrupt handler.
