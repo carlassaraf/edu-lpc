@@ -32,7 +32,7 @@ class LM35 {
 		uint16_t raw(void);
 		float tempC(void);
 		float tempF(void);
-		ADC* ADC(void);
+		ADC* getADC(void);
 
 	private:
 		/* ADC object pointer */
@@ -109,7 +109,7 @@ inline float LM35::tempC(void) { return data.tempC; }
 inline float LM35::tempF(void) {	return data.tempF; }
 
 /*!
- * @brief LM35 ADC method.
+ * @brief LM35 getADC method.
 
  * Returns the associated ADC instance.
  *
@@ -117,6 +117,6 @@ inline float LM35::tempF(void) {	return data.tempF; }
  *
  * @retval pointer to an ADC object.
  */
-inline ADC* LM35::ADC(void) { return adc; }
+inline ADC* LM35::getADC(void) { return adc; }
 
 #endif /* LM35_H_ */
