@@ -65,6 +65,35 @@ enum class EDU_LPC_CONFIG : uint8_t {
 class EDU_LPC {
 
 	public:
+		/* RGB LED constants */
+		static constexpr uint8_t GLED {0};
+		static constexpr uint8_t BLED {1};
+		static constexpr uint8_t RLED {2};
+		/* BTN constants */
+		static constexpr uint8_t BTN1 {0};
+		static constexpr uint8_t BTN2 {1};
+		static constexpr uint8_t BTN3 {2};
+		static constexpr uint8_t USER {3};
+		/* Output constants */
+		static constexpr uint8_t Relay {0};
+		/* ADC constants */
+		static constexpr uint8_t Pot {0};
+		static constexpr uint8_t LM35Ch {1};
+		static constexpr uint8_t ADCh3 {2};
+		static constexpr uint8_t ADCh4 {3};
+		static constexpr uint8_t ADCh5 {4};
+		static constexpr uint8_t ADCh6 {5};
+		static constexpr uint8_t ADCh7 {6};
+		static constexpr uint8_t ADCh8 {7};
+		static constexpr uint8_t ADCh9 {8};
+		/* DAC constants */
+		static constexpr uint8_t DACh0 {0};
+		static constexpr uint8_t DACh1 {1};
+		/* PWM constants */
+		static constexpr uint8_t PWM1 {0};
+		static constexpr uint8_t PWM2 {1};
+		static constexpr uint8_t PWM3 {2};
+		static constexpr uint8_t PWM4 {3};
 		/* Constructors */
 		EDU_LPC(void);
 		/* Public methods */
