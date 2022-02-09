@@ -64,8 +64,8 @@ class Pin {
 		Pin(uint8_t pin_index, const uint8_t mode);
 		Pin(uint8_t pin_index, const uint8_t mode, const uint8_t initial_value);
 		/* Public methods */
-		uint8_t read();
-		void write(const uint8_t value);
+		uint8_t value();
+		void value(const uint8_t value);
 		void set(void);
 		void clear(void);
 		void toggle(void);
@@ -94,7 +94,7 @@ class Pin {
 /* Inline methods */
 
 /*!
- * @brief Pin read method.
+ * @brief Pin value method.
 
  * Returns the digital value of the pin.
  *
@@ -102,10 +102,10 @@ class Pin {
  *
  * @retval pin value.
  */
-inline uint8_t Pin::read(void) { return GPIO->B[port][pin]; }
+inline uint8_t Pin::value(void) { return GPIO->B[port][pin]; }
 
 /*!
- * @brief Pin write method.
+ * @brief Pin value method.
 
  * Writes a desired value in the output pin.
  *
@@ -113,7 +113,7 @@ inline uint8_t Pin::read(void) { return GPIO->B[port][pin]; }
  *
  * @retval None.
  */
-inline void Pin::write(const uint8_t value) { GPIO->B[port][pin] = value; }
+inline void Pin::value(const uint8_t value) { GPIO->B[port][pin] = value; }
 
 /*!
  * @brief Pin set method.
