@@ -9,7 +9,7 @@
 
 /* CTimer IRQ handler pointer */
 /* Match0, Match1, Match2, Match3, Capture0, Capture1, Capture2, Capture3 */
-ctimer_callback_t ctimer_callbacks[] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+static ctimer_callback_t ctimer_callbacks[] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 /*!
  * @brief CTimer constructor.
