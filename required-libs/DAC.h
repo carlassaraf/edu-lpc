@@ -44,9 +44,9 @@ class DAC {
 		void set(uint16_t value);
 		uint16_t get(void);
 		void setVoltage(float voltage);
-		CTimer* getTimer(void);
 		void sine(uint16_t frequency);
 		void triangular(uint16_t frequency);
+		CTimer* getTimer(void);
 
 	private:
 		/* Pointer to DAC peripherial */
@@ -108,18 +108,6 @@ inline void DAC::setVoltage(float voltage) {
 }
 
 /*!
- * @brief DAC getTimer method.
-
- * Returns a pointer to the private CTimer
- * assigned to the DAC object.
- *
- * @param None.
- *
- * @retval pointer to the CTimer.
- */
-inline CTimer* DAC::getTimer(void) { return timer; }
-
-/*!
  * @brief DAC sine method.
 
  * Calls the wave method to prepare the
@@ -146,6 +134,18 @@ inline void DAC::sine(uint16_t frequency) {
 inline void DAC::triangular(uint16_t frequency) {
 	wave(frequency, WAVE_TYPE::TRIANGULAR);
 }
+
+/*!
+ * @brief DAC getTimer method.
+
+ * Returns a pointer to the private CTimer
+ * assigned to the DAC object.
+ *
+ * @param None.
+ *
+ * @retval pointer to the CTimer.
+ */
+inline CTimer* DAC::getTimer(void) { return timer; }
 
 /* Extra function prototypes */
 void wave_channel_0(uint32_t flags);
