@@ -8,12 +8,14 @@
 #ifndef GPIO_H_
 #define GPIO_H_
 
+/* Includes */
 #include "fsl_gpio.h"
 #include "fsl_iocon.h"
-#include "pin_mux.h"
 #include "fsl_pint.h"
 #include "fsl_syscon.h"
 #include "fsl_syscon_connections.h"
+
+/* Inline functions */
 
 /*!
  * @brief getPORT function.
@@ -46,18 +48,18 @@ class Pin {
 
 	public:
 		/* Pin modes */
-		static constexpr uint8_t INPUT {(uint8_t)kGPIO_DigitalInput};
-		static constexpr uint8_t OUTPUT {(uint8_t)kGPIO_DigitalOutput};
+		static constexpr uint8_t Input {(uint8_t)kGPIO_DigitalInput};
+		static constexpr uint8_t Output {(uint8_t)kGPIO_DigitalOutput};
 		/* Pin values */
 		static constexpr uint8_t LOW {0};
 		static constexpr uint8_t HIGH {1};
 		/* PINT related constants */
-		static constexpr pint_pin_enable_t PINT_NONE = kPINT_PinIntEnableNone;
-		static constexpr pint_pin_enable_t PINT_RISE_EDGE = kPINT_PinIntEnableRiseEdge;
-		static constexpr pint_pin_enable_t PINT_FALL_EDGE = kPINT_PinIntEnableFallEdge;
-		static constexpr pint_pin_enable_t PINT_BOTH_EDGES = kPINT_PinIntEnableBothEdges;
-		static constexpr pint_pin_enable_t PINT_LOW_LEVEL = kPINT_PinIntEnableLowLevel;
-		static constexpr pint_pin_enable_t PINT_HIGH_LEVEL = kPINT_PinIntEnableHighLevel;
+		static constexpr pint_pin_enable_t PINT_NONE {kPINT_PinIntEnableNone};
+		static constexpr pint_pin_enable_t PINT_RISE_EDGE {kPINT_PinIntEnableRiseEdge};
+		static constexpr pint_pin_enable_t PINT_FALL_EDGE {kPINT_PinIntEnableFallEdge};
+		static constexpr pint_pin_enable_t PINT_BOTH_EDGES {kPINT_PinIntEnableBothEdges};
+		static constexpr pint_pin_enable_t PINT_LOW_LEVEL {kPINT_PinIntEnableLowLevel};
+		static constexpr pint_pin_enable_t PINT_HIGH_LEVEL {kPINT_PinIntEnableHighLevel};
 		/* Constructors */
 		Pin(uint8_t pin_index, const uint8_t mode);
 		Pin(uint8_t pin_index, const uint8_t mode, const uint8_t initial_value);
@@ -147,7 +149,6 @@ inline void Pin::clear(void) { GPIO->CLR[port] |= 1UL << pin; }
 inline void Pin::toggle(void) { GPIO->NOT[port] |= 1UL << pin; }
 
 /* Extra function prototypes */
-
 void pint_callback(pint_pin_int_t pintr, uint8_t pmatch_status);
 
 #endif /* GPIO_H_ */
