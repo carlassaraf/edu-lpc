@@ -8,7 +8,7 @@
 #ifndef PWM_H_
 #define PWM_H_
 
-/* PWM includes */
+/* Includes */
 #include "SCTimer.h"
 #include <fsl_swm.h>
 
@@ -30,7 +30,9 @@ typedef struct {
 class PWM {
 
 	public:
-		/* Static class members */
+		/* Public constants for logic leve */
+		static constexpr bool LowTrue {false};
+		static constexpr bool HighTrue {true};
 		/* Keep track of SCTimer event number */
 		static uint8_t s_currentEvent;
 		/* Keep track of SCTimer unify 32-bit or low 16-bit match/capture register number */
@@ -40,13 +42,13 @@ class PWM {
 		/* Only supports state 0 */
 		static constexpr uint8_t s_currentState {0};
 		/* Constructors */
-		PWM(uint8_t outputPin, uint32_t frequency = 1000, uint8_t duty = 50);
-		void setDuty(uint8_t duty);
-		void setFrequency(uint32_t frequency);
+		PWM(uint8_t pin, uint32_t frequency = 1000, uint8_t duty = 50);
+		/* Public methods */
+		void duty(uint8_t duty);
+		void frequency(uint32_t frequency);
 		void logicLevel(bool logic);
-		void setOutputPin(uint8_t pin);
-		uint8_t getDuty(void);
-		uint32_t getFrequency(void);
+		uint32_t frequency(void);
+		uint8_t duty(void);
 
 	private:
 		/* Settings struct to keep track of configuration */
@@ -56,6 +58,7 @@ class PWM {
 		/* Instance assigned pulse event */
 		uint32_t pulseEvent;
 		/* Private methods */
+		void outputPin(uint8_t pin);
 		void init(uint32_t frequency);
 		uint8_t createEvent(uint32_t matchValue);
 };
@@ -64,21 +67,7 @@ class PWM {
 /* Inline methods */
 
 /*!
- * @brief PWM getDuty method.
-
- * Gets the current PWM duty cycle.
- *
- * @param None.
- *
- * @retval PWM duty cycle in percentage.
- */
-inline uint8_t PWM::getDuty(void) {
-	/* Duty cycle from sesttings */
-	return settings.config.dutyCyclePercent;
-}
-
-/*!
- * @brief PWM getFrequency method.
+ * @brief PWM frequency method.
 
  * Gets the current PWM frequency.
  *
@@ -86,10 +75,18 @@ inline uint8_t PWM::getDuty(void) {
  *
  * @retval PWM frequency in percentage.
  */
-inline uint32_t PWM::getFrequency(void) {
-	/* Frequency from settings */
-	return settings.frequency;
-}
+inline uint32_t PWM::frequency(void) { return settings.frequency; }
+
+/*!
+ * @brief PWM duty method.
+
+ * Gets the current PWM duty cycle.
+ *
+ * @param None.
+ *
+ * @retval PWM duty cycle in percentage.
+ */
+inline uint8_t PWM::duty(void) { return settings.config.dutyCyclePercent; }
 
 /*!
  * @brief PWM createEvent private method.

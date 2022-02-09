@@ -8,7 +8,7 @@
 #include <PWM.h>
 
 /* SCTimer object for every PWM channel */
-SCTimer *sctimer = new SCTimer();
+static SCTimer *sctimer = new SCTimer();
 /* Initialize static members */
 uint8_t PWM::s_currentEvent = 0;
 uint8_t PWM::s_currentMatch = 0;
@@ -25,22 +25,41 @@ sctimer_out_t PWM::s_currentOutput = kSCTIMER_Out_0;
  *
  * @retval None.
  */
-PWM::PWM(uint8_t outputPin, uint32_t frequency, uint8_t duty) {
+PWM::PWM(uint8_t pin, uint32_t frequency, uint8_t duty) {
 	/* Update settings with the user arguments */
-	settings.outputPin = outputPin;
+	settings.outputPin = pin;
 	settings.config.output = s_currentOutput;
 	settings.config.dutyCyclePercent = duty;
 	/* Increment SCT Output for the next PWM */
 	int out = (int)s_currentOutput;
 	s_currentOutput = (sctimer_out_t)(out + 1);
     /* Configure output pin */
-	setOutputPin(outputPin);
+	setOutputPin(pin);
 	/* Initialize PWM with the current settings */
 	init(frequency);
 }
 
 /*!
- * @brief PWM setDuty method.
+ * @brief PWM frequency method.
+
+ * Sets the PWM frequency.
+ *
+ * @param frequency PWM frequency in Hz.
+ *
+ * @retval None.
+ */
+void PWM::frequency(uint32_t frequency) {
+	/* Update frequency on settings */
+	settings.frequency = frequency;
+	/* Update values to overwrite events */
+	s_currentEvent = periodEvent;
+	s_currentMatch = periodEvent;
+	/* Overwrite the original PWM values */
+	init(frequency);
+}
+
+/*!
+ * @brief PWM duty method.
 
  * Sets the PWM duty cycle.
  *
@@ -48,7 +67,7 @@ PWM::PWM(uint8_t outputPin, uint32_t frequency, uint8_t duty) {
  *
  * @retval None.
  */
-void PWM::setDuty(uint8_t duty) {
+void PWM::duty(uint8_t duty) {
 	/* Set duty to 100% if it was greater */
 	if(duty > 100) { duty = 100; }
 	/* Set duty to 0% if it was lesser */
@@ -78,25 +97,6 @@ void PWM::setDuty(uint8_t duty) {
 }
 
 /*!
- * @brief PWM setFrequency method.
-
- * Sets the PWM frequency.
- *
- * @param frequency PWM frequency in Hz.
- *
- * @retval None.
- */
-void PWM::setFrequency(uint32_t frequency) {
-	/* Update frequency on settings */
-	settings.frequency = frequency;
-	/* Update values to overwrite events */
-	s_currentEvent = periodEvent;
-	s_currentMatch = periodEvent;
-	/* Overwrite the original PWM values */
-	init(frequency);
-}
-
-/*!
  * @brief PWM logicLevel method.
 
  * Sets the PWM logic level.
@@ -115,7 +115,7 @@ void PWM::logicLevel(bool logic) {
 }
 
 /*!
- * @brief PWM setOutputPin method.
+ * @brief PWM outputPin private method.
 
  * Sets the PWM output pin.
  *
@@ -123,7 +123,7 @@ void PWM::logicLevel(bool logic) {
  *
  * @retval None.
  */
-void PWM::setOutputPin(uint8_t pin) {
+void PWM::outputPin(uint8_t pin) {
 	/* Update outputPin in settings */
 	settings.outputPin = pin;
 	/* Enable SWM clock */
