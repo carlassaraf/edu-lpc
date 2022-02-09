@@ -72,7 +72,7 @@ void CTimer::frequency(uint32_t freq) {
 	/* Get the CTIMER running frequency */
 	uint32_t ctimer_freq = CLOCK_GetFreq(kCLOCK_CoreSysClk) / (CTIMER0->PR + 1);
 	/* Set match value */
-	setMatch(ctimer_freq / frequency);
+	match(ctimer_freq / frequency);
 }
 
 /*!

@@ -82,7 +82,7 @@ void DAC::wave(uint16_t frequency, WAVE_TYPE wave) {
 	/* Creates an interrupt for every match of the CTimer */
 	timer->attachInterrupt(g_wave_ptr[channel]);
 	/* Have a faster timer frequency according to the number of values */
-	timer->setFrequency(frequency * g_wave[channel].max_values);
+	timer->frequency(frequency * g_wave[channel].max_values);
 	/* Configure the wave settings */
 	g_wave[channel].frequency = frequency;
 	g_wave[channel].dac = base_dac;
