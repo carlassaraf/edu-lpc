@@ -98,30 +98,28 @@ class EDU_LPC {
 		EDU_LPC(void);
 		/* Public methods */
 		void handler(void);
-		/* get methods */
-		Pin* getRLed(void);
-		Pin* getGLed(void);
-		Pin* getBLed(void);
-		Pin* getBtn(uint8_t index);
-		Pin* getUserBtn(void);
-		Pin* getRelay(void);
-		ADC* getPot(void);
+		/* Get methods */
+		Pin* getRGB(uint8_t led);
+		Pin* getBtn(uint8_t bt);
+		Pin* getOutput(uint8_t out);
+		ADC* getADC(uint8_t channel);
 		LM35* getLM35(void);
-		DAC* getDAC(void);
+		DAC* getDAC(uint8_t channel);
+		PWM* getPWM(uint8_t channel);
 		BMP180* getBMP180(void);
+		MPU9250* getMPU9250(void);
 
 	private:
 		/* Module instances */
 		LM35 *lm { new LM35 };
 		BMP180 *bmp { new BMP180 };
+		MPU9250 *mpu { new MPU9250 };
 		/* Board RGB LED */
 		Pin *rgb[3] = { new Pin(32, Pin::OUTPUT, 1), new Pin(33, Pin::OUTPUT, 1), new Pin(34, Pin::OUTPUT, 1) };
-		/* Board user button */
-		Pin *user { new Pin(4, Pin::INPUT) };
 		/* Button array */
-		Pin *btn[3] = { new Pin(8, Pin::INPUT), new Pin(9, Pin::INPUT), new Pin(13, Pin::INPUT) };
-		/* Relay output */
-		Pin *relay { new Pin(14, Pin::OUTPUT, 0) };
+		Pin *btn[4] = { new Pin(8, Pin::Input), new Pin(9, Pin::Input), new Pin(13, Pin::Input), new Pin(4, Pin::Input) };
+		/* Outputs */
+		Pin *outs[1] = { new Pin(14, Pin::Output, 0) };
 		/* Array pointer to class instances */
 		/* ADC0 (potentiometer), ADC1 (LM35), ADC3, ADC4, ADC5, ADC6, ADC7, ADC8, ADC9 */
 		ADC *adc[9] = { new ADC(0), lm->getADC(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
@@ -157,84 +155,65 @@ class EDU_LPC {
 /* Inline methods */
 
 /*!
- * @brief EDU LPC getRLed method.
+ * @brief EDU LPC getRGB method.
 
- * Returns a pointer to the Board Red LED.
+ * Returns a pointer to one of the Board RGB's LED.
  *
- * @param None.
+ * @param led to be retrieved. Possible values are:
+ * - RLED
+ * - GLED
+ * - BLED
  *
  * @retval pointer to a Pin object.
  */
-inline Pin* EDU_LPC::getRLed(void) { return rgb[2]; }
-
-/*!
- * @brief EDU LPC getGLed method.
-
- * Returns a pointer to the Board Green LED.
- *
- * @param None.
- *
- * @retval pointer to a Pin object.
- */
-inline Pin* EDU_LPC::getGLed(void) { return rgb[0]; }
-
-/*!
- * @brief EDU LPC getBLed method.
-
- * Returns a pointer to the Board Blue LED.
- *
- * @param None.
- *
- * @retval pointer to a Pin object.
- */
-inline Pin* EDU_LPC::getBLed(void) { return rgb[1]; }
+inline Pin* EDU_LPC::getRGB(uint8_t led) { return rgb[led]; }
 
 /*!
  * @brief EDU LPC getBtn method.
 
  * Returns a pointer to a Button pointer.
  *
- * @param index of the button. Posible values are:
- * - 1 for BTN1
- * - 2 for BTN2
- * - 3 for BTN3
+ * @param bt button to be retrieved. Posible values are:
+ * - BTN1
+ * - BTN2
+ * - BTN3
+ * - USER
  *
  * @retval pointer to a Pin object.
  */
-inline Pin* EDU_LPC::getBtn(uint8_t index) { return btn[index - 1]; }
+inline Pin* EDU_LPC::getBtn(uint8_t bt) { return btn[bt]; }
 
 /*!
- * @brief EDU LPC getUserBtn method.
+ * @brief EDU LPC getOutputs method.
 
- * Returns a pointer to the Board user button.
+ * Returns a pointer to a Board output.
  *
- * @param None.
+ * @param out to be retrived. Posible values are:
+ * - Relay
  *
  * @retval pointer to a Pin object.
  */
-inline Pin* EDU_LPC::getUserBtn(void) { return user; }
+inline Pin* EDU_LPC::getOutput(uint8_t out) { return outs[out]; }
 
 /*!
- * @brief EDU LPC getRelay method.
+ * @brief EDU LPC getADC method.
 
- * Returns a pointer to the Board relay.
+ * Returns a pointer to the selected ADC.
  *
- * @param None.
- *
- * @retval pointer to a Pin object.
- */
-inline Pin* EDU_LPC::getRelay(void) { return relay; }
-
-/*!
- * @brief EDU LPC getPot method.
-
- * Returns a pointer to the Board potentiometer.
- *
- * @param None.
+ * @param channel ADC to be retrieved. Possible values are:
+ * - Pot
+ * - LM35
+ * - ADCh3
+ * - ADCh4
+ * - ADCh5
+ * - ADCh6
+ * - ADCh7
+ * - ADCh8
+ * - ADCh9
  *
  * @retval pointer to an ADC object.
  */
-inline ADC* EDU_LPC::getPot(void) { return adc[0]; }
+inline ADC* EDU_LPC::getADC(uint8_t channel) { return adc[channel]; }
 
 /*!
  * @brief EDU LPC getLM35 method.
@@ -251,14 +230,32 @@ inline LM35* EDU_LPC::getLM35(void) { return lm; }
 /*!
  * @brief EDU LPC getDAC method.
 
- * Returns a pointer to the DAC
- * output 1 object.
+ * Returns a pointer to the requested DAC.
  *
- * @param None.
+ * @param channel of the DAC to be retrived. Possible
+ * values are:
+ * - DACh0
+ * - DACh1
  *
  * @retval pointer to a DAC object.
  */
-inline DAC* EDU_LPC::getDAC(void) { return dac[1]; }
+inline DAC* EDU_LPC::getDAC(uint8_t channel) { return dac[channel]; }
+
+/*!
+ * @brief EDU LPC getPWM method.
+
+ * Returns a pointer to the requested PWM.
+ *
+ * @param channel of the PWM to be retrived. Possible
+ * values are:
+ * - PWM1
+ * - PWM2
+ * - PWM3
+ * - PWM4
+ *
+ * @retval pointer to a PWM object.
+ */
+inline PWM* EDU_LPC::getPWM(uint8_t channel) { return pwm[channel]; }
 
 /*!
  * @brief EDU LPC getBMP180 method.
