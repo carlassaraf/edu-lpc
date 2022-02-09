@@ -23,7 +23,7 @@ bool EDU_LPC::rxDone = false;
  *
  * @retval None.
  */
-EDU_LPC::EDU_LPC(void) {
+EDU_LPC::EDU_LPC(bool bmp_en, bool mpu_en) {
 	/* Initialize USART instance */
 	USART *serial = new USART(0);
 	/* Attach the RX interrupt */
@@ -32,6 +32,10 @@ EDU_LPC::EDU_LPC(void) {
 	serial->assignPins(27, 28);
 	/* Free memory */
 	delete serial;
+	/* If enable, add BMP pointer and initialize */
+	if(bmp_en) { bmp = new BMP180; }
+	/* If enable, add MPU pointer and initialize */
+	if(mpu_en) { mpu = new MPU9250; }
 }
 
 /*!

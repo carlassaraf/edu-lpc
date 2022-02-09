@@ -79,6 +79,11 @@ enum class EDU_LPC_CONFIG : uint8_t {
 class EDU_LPC {
 
 	public:
+		/* Initialization constants */
+		static constexpr bool BMP_Disable {false};
+		static constexpr bool BMP_Enable {true};
+		static constexpr bool MPU_Disable {false};
+		static constexpr bool MPU_Enable {true};
 		/* RGB LED constants */
 		static constexpr uint8_t GLED {0};
 		static constexpr uint8_t BLED {1};
@@ -109,7 +114,7 @@ class EDU_LPC {
 		static constexpr uint8_t PWM3 {2};
 		static constexpr uint8_t PWM4 {3};
 		/* Constructors */
-		EDU_LPC(void);
+		EDU_LPC(bool bmp_en = BMP_Enable, bool mpu_en = MPU_Disable);
 		/* Public methods */
 		void handler(void);
 		/* Get methods */
