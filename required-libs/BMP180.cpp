@@ -19,21 +19,17 @@
  * @retval None.
  */
 BMP180::BMP180(uint8_t i2c, uint8_t mode) {
-
-	if (mode > ULTRAHIGHRES) {
-		mode = ULTRAHIGHRES;
-	}
-
+	/* If invalid mode, then UltraHighRes */
+	if (mode > UltraHighRes) { mode = UltraHighRes; }
 	/* Creates I2C object to initialize peripherial */
 	I2C *i2cobj = new I2C(i2c, 3000000U);
-
 	/* Gets the I2C peripherial pointer */
 	i2c_base = i2cobj->getI2C();
-
 	/* Free memory */
 	delete i2cobj;
-
+	/* Update mode */
 	oversampling = mode;
+	/* Call calibration methods */
 	calibrate();
 }
 
@@ -48,19 +44,19 @@ BMP180::BMP180(uint8_t i2c, uint8_t mode) {
  * @retval None.
  */
 void BMP180::read(void) {
-
+	/* Auxiliary variables */
 	int32_t UT, UP, B5, pres;
 	float temp, altitude;
-
+	/* Get raw values */
 	UT = readRawTemperature();
 	UP = readRawPressure();
-
+	/* Compute b5 value */
 	B5 = computeB5(UT);
-
+	/* Calculate temperature, pressure and altitude */
 	temp = calculateTemperature(B5);
 	pres = calculatePressure(UP, B5);
 	altitude = calculateAltitude(pres);
-
+	/* Store in the data attribute */
 	bmp180data.temperature = temp;
 	bmp180data.pressure = pres;
 	bmp180data.altitude = altitude;
@@ -141,9 +137,9 @@ uint32_t BMP180::readRawPressure(void) {
 
 	write(BMP180_CONTROL, BMP180_READPRESSURECMD + (oversampling << 6));
 
-	if (oversampling == ULTRALOWPOWER) { delay(5); }
-	else if (oversampling == STANDARD) { delay(8); }
-	else if (oversampling == HIGHRESOLUTION) { delay(14); }
+	if (oversampling == UltraLowPower) { delay(5); }
+	else if (oversampling == Standard) { delay(8); }
+	else if (oversampling == HighResolution) { delay(14); }
 	else { delay(27); }
 
 	raw = read(BMP180_PRESSUREDATA, 2);
