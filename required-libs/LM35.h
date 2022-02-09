@@ -29,10 +29,10 @@ class LM35 {
 		LM35(uint8_t channel = 1);
 		/* Public methods */
 		void update(void);
-		uint16_t getRaw(void);
-		float getTempC(void);
-		float getTempF(void);
-		ADC* getADC(void);
+		uint16_t raw(void);
+		float tempC(void);
+		float tempF(void);
+		ADC* ADC(void);
 
 	private:
 		/* ADC object pointer */
@@ -76,7 +76,7 @@ inline void LM35::update(void) {
 }
 
 /*!
- * @brief LM35 getRaw method.
+ * @brief LM35 raw method.
 
  * Returns the stored raw value from ADC.
  *
@@ -84,10 +84,10 @@ inline void LM35::update(void) {
  *
  * @retval raw 12 bit ADC value.
  */
-inline uint16_t LM35::getRaw(void) { return data.raw; }
+inline uint16_t LM35::raw(void) { return data.raw; }
 
 /*!
- * @brief LM35 getTempC method.
+ * @brief LM35 tempC method.
 
  * Returns the stored temperature in Celsius.
  *
@@ -95,10 +95,10 @@ inline uint16_t LM35::getRaw(void) { return data.raw; }
  *
  * @retval temperature in Celsius.
  */
-inline float LM35::getTempC(void) { return data.tempC; }
+inline float LM35::tempC(void) { return data.tempC; }
 
 /*!
- * @brief LM35 getTempF method.
+ * @brief LM35 tempF method.
 
  * Returns the stored temperature in Fahrenheit.
  *
@@ -106,10 +106,10 @@ inline float LM35::getTempC(void) { return data.tempC; }
  *
  * @retval temperature in Fahrenheit.
  */
-inline float LM35::getTempF(void) {	return data.tempF; }
+inline float LM35::tempF(void) {	return data.tempF; }
 
 /*!
- * @brief LM35 getADC method.
+ * @brief LM35 ADC method.
 
  * Returns the associated ADC instance.
  *
@@ -117,6 +117,6 @@ inline float LM35::getTempF(void) {	return data.tempF; }
  *
  * @retval pointer to an ADC object.
  */
-inline ADC* LM35::getADC(void) { return adc; }
+inline ADC* LM35::ADC(void) { return adc; }
 
 #endif /* LM35_H_ */
