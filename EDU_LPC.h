@@ -114,7 +114,7 @@ class EDU_LPC {
 		static constexpr uint8_t PWM3 {2};
 		static constexpr uint8_t PWM4 {3};
 		/* Constructors */
-		EDU_LPC(bool bmp_en = BMP_Enable, bool mpu_en = MPU_Disable);
+		EDU_LPC(bool bmp_en = BMP_Enable, bool mpu_en = MPU_Enable);
 		/* Public methods */
 		void handler(void);
 		/* Get methods */
