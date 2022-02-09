@@ -28,7 +28,7 @@ IRQn_Type usart_irq_arr[3] = {
  *
  * @retval None.
  */
-USART::USART(uint32_t usart_type, uint32_t baud_rate) {
+USART::USART(uint8_t usart_type, uint32_t baud_rate) {
 	/* Save usart index*/
 	usart_n = usart_type;
 	/* Get the swm pin functions */
@@ -113,7 +113,7 @@ void USART::print(const char *str) {
  *
  * @retval None.
  */
-void USART::print(uint8_t *buff, uint32_t size) {
+void USART::print(uint8_t *buff, uint8_t size) {
 	/* Send a number of bytes via polling */
 	USART_WriteBlocking(usart, buff, (size_t)size);
 }
@@ -235,7 +235,7 @@ uint8_t USART::read(void) {
  *
  * @retval None.
  */
-void USART::read(uint8_t *buffer, uint32_t size) {
+void USART::read(uint8_t *buffer, uint8_t size) {
 	/* Read a number of bytes and store them in the array */
 	USART_ReadBlocking(usart, buffer, size);
 }

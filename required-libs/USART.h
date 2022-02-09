@@ -8,7 +8,7 @@
 #ifndef USART_H_
 #define USART_H_
 
-/* USART includes */
+/* Includes */
 #include <stdio.h>
 #include <fsl_usart.h>
 #include <fsl_swm.h>
@@ -46,18 +46,18 @@ class USART {
 
 	public:
 		/* Constructors */
-		USART(uint32_t usart_type, uint32_t baud_rate);
+		USART(uint8_t usart_type, uint32_t baud_rate);
 		/* Public methods */
 		void print(uint8_t ch);
 		void print(uint8_t *buff);
 		void print(const char *str);
-		void print(uint8_t *buff, uint32_t size);
+		void print(uint8_t *buff, uint8_t size);
 		void printd(const char *format, int32_t value);
 		void printf(const char *format, float value);
 		void assignPins(uint8_t txd, uint8_t rxd);
 		void attachInterrupt(void (*f)(void));
 		uint8_t read(void);
-		void read(uint8_t *buffer, uint32_t size);
+		void read(uint8_t *buffer, uint8_t size);
 
 	private:
 		/* USART index */
