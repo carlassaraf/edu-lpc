@@ -236,7 +236,7 @@ struct MPU9250Setting {
 
 /* MPU data struct */
 typedef struct {
-	float acc[3] = { 0., 0., 0. };
+	float ac[3] = { 0., 0., 0. };
 	float gy[3] = { 0., 0., 0. };
 	float mg[3] = {0., 0., 0. };
 	float temp = 0.;
@@ -256,19 +256,22 @@ class MPU9250 {
 		bool update(void);
 		/* Get methods to output data to main program */
 		/* Accelerometer data */
-		float getAccX(void);
-		float getAccY(void);
-		float getAccZ(void);
+		float accX(void);
+		float accY(void);
+		float accZ(void);
+		void acc(float *arr);
 		/* Gyroscope data */
-		float getGyroX(void);
-		float getGyroY(void);
-		float getGyroZ(void);
+		float gyroX(void);
+		float gyroY(void);
+		float gyroZ(void);
+		void gyro(float *arr);
 		/* Magnetometer data */
-		float getMagX(void);
-		float getMagY(void);
-		float getMagZ(void);
+		float magX(void);
+		float magY(void);
+		float magZ(void);
+		void mag(float *arr);
 		/* Temperature data */
-		float getTemperature(void);
+		float temperature(void);
 
 	private:
 
@@ -332,7 +335,7 @@ class MPU9250 {
 /* Inline class methods */
 
 /*!
- * @brief MPU9250 getAccX method.
+ * @brief MPU9250 accX method.
 
  * Gets the last stored acceleration value of X axis.
  *
@@ -340,10 +343,10 @@ class MPU9250 {
  *
  * @retval X axis acceleration value.
  */
-inline float MPU9250::getAccX(void) { return mpuData.acc[0]; }
+inline float MPU9250::accX(void) { return mpuData.ac[0]; }
 
 /*!
- * @brief MPU9250 getAccY method.
+ * @brief MPU9250 accY method.
 
  * Gets the last stored acceleration value of Y axis.
  *
@@ -351,10 +354,10 @@ inline float MPU9250::getAccX(void) { return mpuData.acc[0]; }
  *
  * @retval Y axis acceleration value.
  */
-inline float MPU9250::getAccY(void) { return mpuData.acc[1]; }
+inline float MPU9250::accY(void) { return mpuData.ac[1]; }
 
 /*!
- * @brief MPU9250 getAccZ method.
+ * @brief MPU9250 accZ method.
 
  * Gets the last stored acceleration value of Z axis.
  *
@@ -362,10 +365,22 @@ inline float MPU9250::getAccY(void) { return mpuData.acc[1]; }
  *
  * @retval Z axis acceleration value.
  */
-inline float MPU9250::getAccZ(void) { return mpuData.acc[2]; }
+inline float MPU9250::accZ(void) { return mpuData.ac[2]; }
 
 /*!
- * @brief MPU9250 getGyroX method.
+ * @brief MPU9250 acc method.
+
+ * Gets the last stored acceleration data and
+ * stores it into an array.
+ *
+ * @param arr array to store the values.
+ *
+ * @retval None.
+ */
+inline void MPU9250::acc(float *arr) { arr = mpuData.ac; }
+
+/*!
+ * @brief MPU9250 gyroX method.
 
  * Gets the last stored gyroscope value of X axis.
  *
@@ -373,10 +388,10 @@ inline float MPU9250::getAccZ(void) { return mpuData.acc[2]; }
  *
  * @retval X axis gyroscope value.
  */
-inline float MPU9250::getGyroX(void) { return mpuData.gy[0]; }
+inline float MPU9250::gyroX(void) { return mpuData.gy[0]; }
 
 /*!
- * @brief MPU9250 getGyroY method.
+ * @brief MPU9250 gyroY method.
 
  * Gets the last stored gyroscope value of Y axis.
  *
@@ -384,10 +399,10 @@ inline float MPU9250::getGyroX(void) { return mpuData.gy[0]; }
  *
  * @retval Y axis gyroscope value.
  */
-inline float MPU9250::getGyroY(void) { return mpuData.gy[1]; }
+inline float MPU9250::gyroY(void) { return mpuData.gy[1]; }
 
 /*!
- * @brief MPU9250 getGyroZ method.
+ * @brief MPU9250 gyroZ method.
 
  * Gets the last stored gyroscope value of Z axis.
  *
@@ -395,10 +410,22 @@ inline float MPU9250::getGyroY(void) { return mpuData.gy[1]; }
  *
  * @retval Z axis gyroscope value.
  */
-inline float MPU9250::getGyroZ(void) { return mpuData.gy[2]; }
+inline float MPU9250::gyroZ(void) { return mpuData.gy[2]; }
 
 /*!
- * @brief MPU9250 getMagX method.
+ * @brief MPU9250 gyro method.
+
+ * Gets the last stored gyroscope data and
+ * stores it into an array.
+ *
+ * @param arr array to store the values.
+ *
+ * @retval None.
+ */
+inline void MPU9250::gyro(float *arr) { arr = mpuData.gy; }
+
+/*!
+ * @brief MPU9250 magX method.
 
  * Gets the last stored magnetometer value of X axis.
  *
@@ -406,10 +433,10 @@ inline float MPU9250::getGyroZ(void) { return mpuData.gy[2]; }
  *
  * @retval X axis magnetometer value.
  */
-inline float MPU9250::getMagX(void) { return mpuData.mg[0]; }
+inline float MPU9250::magX(void) { return mpuData.mg[0]; }
 
 /*!
- * @brief MPU9250 getMagY method.
+ * @brief MPU9250 magY method.
 
  * Gets the last stored magnetometer value of Y axis.
  *
@@ -417,10 +444,10 @@ inline float MPU9250::getMagX(void) { return mpuData.mg[0]; }
  *
  * @retval Y axis magnetometer value.
  */
-inline float MPU9250::getMagY(void) { return mpuData.mg[1]; }
+inline float MPU9250::magY(void) { return mpuData.mg[1]; }
 
 /*!
- * @brief MPU9250 getMagZ method.
+ * @brief MPU9250 magZ method.
 
  * Gets the last stored magnetometer value of Z axis.
  *
@@ -428,10 +455,22 @@ inline float MPU9250::getMagY(void) { return mpuData.mg[1]; }
  *
  * @retval Z axis magnetometer value.
  */
-inline float MPU9250::getMagZ(void) { return mpuData.mg[2]; }
+inline float MPU9250::magZ(void) { return mpuData.mg[2]; }
 
 /*!
- * @brief MPU9250 getTemperature method.
+ * @brief MPU9250 mag method.
+
+ * Gets the last stored magnetometer data and
+ * stores it into an array.
+ *
+ * @param arr array to store the values.
+ *
+ * @retval None.
+ */
+inline void MPU9250::mag(float *arr) { arr = mpuData.mg; }
+
+/*!
+ * @brief MPU9250 temperature method.
 
  * Gets the last stored temperature value.
  *
@@ -439,16 +478,6 @@ inline float MPU9250::getMagZ(void) { return mpuData.mg[2]; }
  *
  * @retval temperature value.
  */
-inline float MPU9250::getTemperature(void) { return mpuData.temp; }
-
-/*!
- * @brief MPU9250 isConnectedMPU9250 private method.
-
- * Checks whether the MPU9250 is connected or not.
- *
- * @param None.
- *
- * @retval true if it's connected, false if it's not.
- */
+inline float MPU9250::temperature(void) { return mpuData.temp; }
 
 #endif  /* MPU9250_H */

@@ -144,7 +144,10 @@ bool MPU9250::isConnectedAK8963(void) {
 	/* Read and store the result of the WHO AM I register */
 	uint8_t c = read(AK8963_ADDRESS, WHO_AM_I_AK8963);
 	/* Compare it to the default AK8963 value */
-	return (c == AK8963_WHOAMI_DEFAULT_VALUE);
+	bool b = (c == MPU9250_WHOAMI_DEFAULT_VALUE);
+	b |= (c == MPU9255_WHOAMI_DEFAULT_VALUE);
+	b |= (c == MPU6500_WHOAMI_DEFAULT_VALUE);
+	b |= (c == AK8963_WHOAMI_DEFAULT_VALUE);
 }
 
 /*!
