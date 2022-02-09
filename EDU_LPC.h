@@ -15,6 +15,7 @@
 #include "LM35.h"
 #include "PWM.h"
 #include "BMP180.h"
+#include "MPU9250.h"
 
 /* EDU LPC constant expressions */
 static constexpr uint8_t SIZE_INDEX = 0;
@@ -34,6 +35,18 @@ inline uint16_t _8bit_to_16bit(uint8_t high, uint8_t low) {
 	return ((uint16_t)high << 8) + low;
 }
 
+inline void _to_arr(float *from, uint8_t *to, uint8_t start, uint8_t finish) {
+	/* Separate the high and low values */
+	for(uint8_t i = 0; i < finish; i++) {
+		/* Get high value */
+		to[start + i] = (uint8_t)*from;
+		/* Get low value */
+		to[start + i + 1] = (uint8_t)(((*from) - (int8_t)(*from)) * 100);
+		/* Increment second counter */
+		start++;
+	}
+}
+
 /* EDU LPC enum command class */
 enum class EDU_LPC_CMD : uint8_t {
 	config = 0x01,				/* Set GPIO function */
@@ -49,7 +62,8 @@ enum class EDU_LPC_CMD : uint8_t {
 	dac_triangular = 0x0b,		/* DAC configure triangular wave */
 	dac_wave = 0x0c,			/* DAC enable or disable wave output */
 	pwm_config = 0x0d,			/* PWM configure signal */
-	bmp_read = 0x0e				/* BMP180 read values and send */
+	bmp_read = 0x0e,			/* BMP180 read values and send */
+	mpu_read = 0x0f				/* MPU9250 read values and send */
 };
 
 /* EDU LPC enum GPIO configuration class */
@@ -140,6 +154,7 @@ class EDU_LPC {
 		void cmdDacWave(uint8_t channel, bool enable);
 		void cmdPwmConfig(uint8_t channel, uint32_t frequency, uint8_t duty);
 		void cmdBmpRead(void);
+		void cmdMpuRead(void);
 		/* Miscelaneus methods */
 		uint8_t calculateChecksum(uint8_t *data, uint8_t size);
 		void buildBuffer(uint8_t *data, uint8_t size);

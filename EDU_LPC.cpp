@@ -134,6 +134,11 @@ void EDU_LPC::handler(void) {
 					/* Update BMP180 data and send */
 					cmdBmpRead();
 					break;
+				/* MPU9250 read command */
+				case EDU_LPC_CMD::mpu_read:
+					/* Update MPU9250 data and send */
+					cmdMpuRead();
+					break;
 			}
 		}
 		/* Reset buffer index */
@@ -542,6 +547,51 @@ void EDU_LPC::cmdBmpRead(void) {
 	};
 	/* Build full buffer and send */
 	buildBuffer(buff, 6);
+}
+
+/*!
+ * @brief EDU LPC cmdMpuRead method.
+
+ * Updates the MPU9250 values and sends
+ * the values of the three axis accel,
+ * gyro, magnetometer and temperature
+ * via USART.
+ *
+ * @param None.
+ *
+ * @retval None.
+ */
+void EDU_LPC::cmdMpuRead(void) {
+	/* Update the MPU9250 values */
+	mpu->update();
+	/* Float array to store the values */
+	float values[3];
+	/* Buffer array */
+	uint8_t buff[21];
+	/* Store the command */
+	buff[0] = (uint8_t)EDU_LPC_CMD::mpu_read;
+	/* Get the acceleration values */
+	mpu->acc(values);
+	/* Float values to bytes */
+	_to_arr(values, buff, 1, 3);
+	/* Get the gyroscope values */
+	mpu->gyro(values);
+	/* Float values to bytes */
+	_to_arr(values, buff, 7, 3);
+	/* Get the magnetometer values */
+	mpu->mag(values);
+	/* Float values to bytes */
+	_to_arr(values, buff, 13, 3);
+	/* Get the temperature value */
+	float temp = mpu->temperature();
+	/* Get high and low values */
+	uint8_t high = (uint8_t)temp;
+	uint8_t low = (temp - high) * 100;
+	/* Add them to the buffer */
+	buff[19] = high;
+	buff[20] = low;
+	/* Build the full buffer */
+	buildBuffer(buff, 20);
 }
 
 /*!
