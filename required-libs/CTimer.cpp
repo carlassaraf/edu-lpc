@@ -36,7 +36,7 @@ CTimer::CTimer(uint32_t match_channel) {
 }
 
 /*!
- * @brief CTimer setOutputPin method.
+ * @brief CTimer outputPin method.
 
  * Configures a pin as an output for the match event.
  *
@@ -44,7 +44,7 @@ CTimer::CTimer(uint32_t match_channel) {
  *
  * @retval None.
  */
-void CTimer::setOutputPin(uint32_t match_output_pin) {
+void CTimer::outputPin(uint8_t match_output_pin) {
 	/* Enable switch matrix */
 	SYSCON->SYSAHBCLKCTRL0 	|= SYSCON_SYSAHBCLKCTRL0_SWM_MASK;
 	/* Connect pin to match output channel */
@@ -59,7 +59,7 @@ void CTimer::setOutputPin(uint32_t match_output_pin) {
 }
 
 /*!
- * @brief CTimer setFrequency method.
+ * @brief CTimer frequency method.
 
  * Sets the match register to trigger the event with
  * the desired frequency..
@@ -68,7 +68,7 @@ void CTimer::setOutputPin(uint32_t match_output_pin) {
  *
  * @retval None.
  */
-void CTimer::setFrequency(uint32_t freq) {
+void CTimer::frequency(uint32_t freq) {
 	/* Get the CTIMER running frequency */
 	uint32_t ctimer_freq = CLOCK_GetFreq(kCLOCK_CoreSysClk) / (CTIMER0->PR + 1);
 	/* Set match value */
