@@ -7,6 +7,8 @@
 
 #include <CTimer.h>
 
+/* Initialization of the current match channel */
+ctimer_match_t CTimer::current_match_channel = kCTIMER_Match_0;
 /* Initialization of the callbacks array */
 ctimer_callback_t CTimer::ctimer_callbacks[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 

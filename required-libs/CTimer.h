@@ -33,7 +33,7 @@ class CTimer {
 			0
 		};
 		/* Current match channel */
-		ctimer_match_t current_match_channel;
+		static ctimer_match_t current_match_channel;
 		/* Array for the CTimer callbacks */
 		static ctimer_callback_t ctimer_callbacks[8];
 		/* Match0, Match1, Match2, Match3, Capture0, Capture1, Capture2, Capture3 */

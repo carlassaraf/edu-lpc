@@ -7,8 +7,10 @@
 
 #include <DAC.h>
 
+/* CTimer for the DAC Events */
+CTimer *ctimer = new CTimer;
 /* Event array for every DAC channel */
-Event *g_events[2] = { new Event(1, Event::None), new Event(1, Event::None) };
+Event *g_events[2] = { new Event(ctimer), new Event(ctimer) };
 /* Global wave structs */
 wave_t g_wave[2] {0};
 /* Global pointers for Event interrupt calls */
@@ -19,14 +21,16 @@ void (*g_wave_ptr[2])(uint32_t) = { wave_channel_0, wave_channel_1 };
 
  * Creates a DAC object.
  *
- * @param DAC output channel (0-1).
+ * @param dac_channel DAC output channel (0-1).
  *
  * @retval None.
  */
 DAC::DAC(uint8_t dac_channel) {
+	/* Free memory from CTimer */
+	delete ctimer;
 	/* Power up DAC */
 	SYSCON->PDRUNCFG &= ~(1 << (dac_channel + SYSCON_PDRUNCFG_DAC0_SHIFT));
-
+	/* Check the DAC channel requested */
 	if(!dac_channel) {
 		/* Enable clock for DAC0 */
 		SYSCON->SYSAHBCLKCTRL0 |= SYSCON_SYSAHBCLKCTRL0_DAC0_MASK;

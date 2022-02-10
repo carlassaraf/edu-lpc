@@ -42,7 +42,7 @@ class Event {
 		static constexpr ctimer_match_output_control_t Set {kCTIMER_Output_Set};
 		static constexpr ctimer_match_output_control_t Toggle {kCTIMER_Output_Toggle};
 		/* Constructors */
-		Event(uint32_t frequency, ctimer_match_output_control_t action = None);
+		Event(CTimer *ctimer);
 		/* Public methods */
 		void outputPin(uint8_t match_output_pin);
 		void outputAction(uint8_t action);

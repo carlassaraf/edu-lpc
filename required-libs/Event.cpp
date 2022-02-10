@@ -6,16 +6,17 @@
  */
 #include "Event.h"
 
-/* Initialization of the CTimer */
-CTimer *ctimer = new CTimer;
+/*!
+ * @brief Event constructor.
 
-Event::Event(uint32_t frequency, ctimer_match_output_control_t action) {
-	/* Get the CTIMER running frequency */
-	uint32_t ctimer_freq = CLOCK_GetFreq(kCLOCK_CoreSysClk) / (CTIMER0->PR + 1);
-	/* Update match value in settings */
-	settings.match_config.matchValue = ctimer_freq / frequency;
-	/* Update action in settings */
-	settings.match_config.outControl = action;
+ * Creates an Event object.
+ *
+ * @param ctimer pointer to the CTimer instance
+ * to use.
+ *
+ * @retval None.
+ */
+Event::Event(CTimer *ctimer) {
 	/* Get the pointer for the CTimer */
 	timer = ctimer;
 	/* Get the current match */
@@ -82,7 +83,6 @@ void Event::attachInterrupt(void (*f)(uint32_t)) {
 	CTIMER0->MCR |= 1 << (settings.match_channel * 3U);
 	(void)EnableIRQ(CTIMER_IRQS);
 	/* Add callback function to the callback array */
-	//ctimer_callbacks[settings.match_channel] = f;
 	timer->callbacks()[settings.match_channel] = f;
 	/* Register the callback */
 	CTIMER_RegisterCallBack(CTIMER0, timer->callbacks(), kCTIMER_MultipleCallback);
