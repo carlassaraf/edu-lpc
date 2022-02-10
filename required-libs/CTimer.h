@@ -11,144 +11,75 @@
 /* Includes */
 #include <fsl_ctimer.h>
 
-/* Settings struct */
-typedef struct {
-	/* Default CTimer configuration */
-	ctimer_config_t ctimer_config = {
-		/* Run as a timer */
-		kCTIMER_TimerMode,
-		/* This field is ignored when mode is timer */
-		kCTIMER_Capture_0,
-		/* Timer counter is incremented on every APB bus clock */
-		0
-	};
-	/* Default Match configuration */
-	ctimer_match_config_t match_config = {
-		/* Match value to avoid matching */
-		0xffffffff,
-		/* Matching will reset the timer */
-		true,
-		/* Match will not stop the counter */
-		false,
-		/* No output action taken on match */
-		kCTIMER_Output_NoAction,
-		/* Initial value of output pin */
-		false,
-		/* No interrupt on match */
-		false
-	};
-	/* Default match channel */
-	ctimer_match_t match_channel = kCTIMER_Match_0;
-} ctimer_settings_t;
-
-/* CTimer class definition */
+/* Class definition */
 class CTimer {
 
 	public:
-		/* Output action constants */
-		static constexpr uint8_t None {kCTIMER_Output_NoAction};
-		static constexpr uint8_t Clear {kCTIMER_Output_Clear};
-		static constexpr uint8_t Set {kCTIMER_Output_Set};
-		static constexpr uint8_t Toggle {kCTIMER_Output_Toggle};
 		/* Constructors */
-		CTimer(uint32_t match_channel);
+		CTimer(void);
 		/* Public methods */
-		void outputPin(uint8_t match_output_pin);
-		void outputAction(uint8_t action);
-		void frequency(uint32_t freq);
-		void attachInterrupt(void (*f)(uint32_t));		
-		void start(void);
-		void stop(void);
-		void reset(void);
+		ctimer_match_t currentMatch(void);
+		void newMatch(void);
+		ctimer_callback_t* callbacks(void);
 
 	private:
 		/* CTimer and Match settings */
-		ctimer_settings_t settings;
-		/* Private methods */
-		void match(uint32_t match_value);
+		ctimer_config_t settings = {
+			/* Run as a timer */
+			kCTIMER_TimerMode,
+			/* This field is ignored when mode is timer */
+			kCTIMER_Capture_0,
+			/* Timer counter is incremented on every APB bus clock */
+			0
+		};
+		/* Current match channel */
+		ctimer_match_t current_match_channel;
+		/* Array for the CTimer callbacks */
+		static ctimer_callback_t ctimer_callbacks[8];
+		/* Match0, Match1, Match2, Match3, Capture0, Capture1, Capture2, Capture3 */
 };
 
 /* Inline methods */
 
 /*!
- * @brief CTimer setOutputAction method.
+ * @brief CTimer currentMatch method.
 
- * Configures the output pin behavior.
+ * Returns the current match channel for
+ * the CTimer.
  *
- * @param action to take. Possible values are:
- * - None
- * - Clear
- * - Set
- * - Toggle
+ * @param None.
  *
- * @retval None.
+ * @retval current match channel.
  */
-inline void CTimer::setOutputAction(uint8_t action) {
-	/* Update settings */
-	settings.match_config.outControl = kCTIMER_Output_NoAction;
-	/* Clear previous state */
-	CTIMER0->EMR &= ~(CTIMER_EMR_EMC0_MASK << settings.match_channel);
-	/* Check if action is needed */
-	if (action) {
-		/* Set functionality */
-		CTIMER0->EMR |= action << (settings.match_channel * 2U + CTIMER_EMR_EMC0_SHIFT);
-	}
-}
+inline ctimer_match_t CTimer::currentMatch(void) { return current_match_channel; }
 
 /*!
- * @brief CTimer start method.
+ * @brief CTimer newMatch method.
 
- * Starts the counter.
+ * Increments the current match of the CTimer.
  *
  * @param None.
  *
  * @retval None.
  */
-inline void CTimer::start(void) { CTIMER0->TCR |= CTIMER_TCR_CEN_MASK; }
-
-/*!
- * @brief CTimer stop method.
-
- * Stops the counter.
- *
- * @param None.
- *
- * @retval None.
- */
-inline void CTimer::stop(void) { CTIMER0->TCR &= ~CTIMER_TCR_CEN_MASK; }
-
-/*!
- * @brief CTimer stop method.
-
- * Resets the counter.
- *
- * @param None.
- *
- * @retval None.
- */
-inline void CTimer::reset(void) {
-	/* Reset counter */
-	CTIMER0->TCR |= CTIMER_TCR_CRST_MASK;
-	/* Clear reset */
-	CTIMER0->TCR &= ~CTIMER_TCR_CRST_MASK;
+inline void CTimer::newMatch(void) {
+	/* Cast match as an int */
+	uint8_t match = (uint8_t)current_match_channel;
+	/* Increment match */
+	match++;
+	/* Update current match attribute */
+	current_match_channel = (ctimer_match_t)match;
 }
 
 /*!
- * @brief CTimer match private method.
+ * @brief CTimer callbacks method.
 
- * Sets a new value to the counter.
+ * Returns the CTimer callbacks array.
  *
- * @param match_value counter value.
+ * @param None.
  *
- * @retval None.
+ * @retval callbacks array.
  */
-inline void CTimer::match(uint32_t match_value) {
-	/* Update match value in settings */
-	settings.match_config.matchValue = match_value;
-	/* Overwrite match value */
-	CTIMER0->MR[settings.match_channel] = match_value;
-	/* Reset counter */
-	CTIMER0->TC = 0;
-}
+inline ctimer_callback_t* CTimer::callbacks(void) { return ctimer_callbacks; }
 
-#endif /* TIMER_H_ */
+#endif /* CTIMER_H_ */
