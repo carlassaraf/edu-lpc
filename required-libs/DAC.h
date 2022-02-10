@@ -12,7 +12,7 @@
 #include <fsl_dac.h>
 #include <fsl_power.h>
 #include <math.h>
-#include "CTimer.h"
+#include "Event.h"
 
 /* DAC constants */
 static constexpr uint8_t IOCON_DACMODE_SHIFT = 16UL;
@@ -46,13 +46,13 @@ class DAC {
 		void setVoltage(float voltage);
 		void sine(uint16_t frequency);
 		void triangular(uint16_t frequency);
-		CTimer* getTimer(void);
+		Event* getEvent(void);
 
 	private:
 		/* Pointer to DAC peripherial */
 		DAC_Type *base_dac;
 		/* Pointer to CTimer object */
-		CTimer *timer;
+		Event *event;
 		/* DAC channel */
 		uint8_t channel;
 		/* Private methods */
@@ -136,16 +136,16 @@ inline void DAC::triangular(uint16_t frequency) {
 }
 
 /*!
- * @brief DAC getTimer method.
+ * @brief DAC getEvent method.
 
- * Returns a pointer to the private CTimer
+ * Returns a pointer to the private Event
  * assigned to the DAC object.
  *
  * @param None.
  *
- * @retval pointer to the CTimer.
+ * @retval pointer to a Event instance.
  */
-inline CTimer* DAC::getTimer(void) { return timer; }
+inline Event* DAC::getEvent(void) { return event; }
 
 /* Extra function prototypes */
 void wave_channel_0(uint32_t flags);

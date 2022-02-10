@@ -7,11 +7,11 @@
 
 #include <DAC.h>
 
-/* CTimer object for every DAC channel */
-CTimer *ctimer = new CTimer();
+/* Event array for every DAC channel */
+Event *g_events[2] = { new Event(1, Event::None), new Event(1, Event::None) };
 /* Global wave structs */
 wave_t g_wave[2] {0};
-/* Global pointers for CTimer interrupt calls */
+/* Global pointers for Event interrupt calls */
 void (*g_wave_ptr[2])(uint32_t) = { wave_channel_0, wave_channel_1 };
 
 /*!
@@ -51,10 +51,12 @@ DAC::DAC(uint8_t dac_channel) {
 	SWM0->PINENABLE0 &= ~(1 << (dac_channel + SWM_PINENABLE0_DACOUT0_SHIFT));
 	/* Disable SWM clock */
 	SYSCON->SYSAHBCLKCTRL0	&= ~(SYSCON_SYSAHBCLKCTRL0_SWM_MASK);
-	/* Reserves a timer for the wave generation */
-	timer = ctimer;
 	/* Save channel */
 	channel = dac_channel;
+	/* Reserves a timer for the wave generation */
+	event = g_events[channel];
+	/* Creates an interrupt for every match of the Event */
+	event->attachInterrupt(g_wave_ptr[channel]);
 }
 
 /*!
@@ -79,18 +81,16 @@ void DAC::wave(uint16_t frequency, WAVE_TYPE wave) {
 		/* Calculate the necessary points of the triangular wave */
 		getTriangularValues(frequency);
 	}
-	/* Creates an interrupt for every match of the CTimer */
-	timer->attachInterrupt(g_wave_ptr[channel]);
 	/* Have a faster timer frequency according to the number of values */
-	timer->frequency(frequency * g_wave[channel].max_values);
+	event->frequency(frequency * g_wave[channel].max_values);
 	/* Configure the wave settings */
 	g_wave[channel].frequency = frequency;
 	g_wave[channel].dac = base_dac;
 	g_wave[channel].counter = 0;
 	/* Reset the counter */
-	timer->reset();
+	event->reset();
 	/* Start the counter */
-	timer->start();
+	event->start();
 }
 
 /*!
@@ -185,7 +185,7 @@ void DAC::getTriangularValues(uint16_t frequency) {
 
  * Sets the wave value every timer match interrupt.
  *
- * @param flags CTIMER flags.
+ * @param flags CTimer flags.
  *
  * @retval None.
  */
@@ -204,7 +204,7 @@ void wave_channel_0(uint32_t flags) {
 
  * Sets the triangular wave value every timer match interrupt.
  *
- * @param flags CTIMER flags.
+ * @param flags CTimer flags.
  *
  * @retval None.
  */
