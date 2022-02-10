@@ -448,7 +448,7 @@ void EDU_LPC::cmdDacSine(uint8_t channel, uint32_t frequency) {
 		/* Configure sine wave with given frequency */
 		dac[channel]->sine(frequency);
 		/* Stop DAC timer */
-		dac[channel]->getTimer()->stop();
+		dac[channel]->getEvent()->stop();
 	}
 	/* Send only one byte */
 	uint8_t b = 1;
@@ -472,7 +472,7 @@ void EDU_LPC::cmdDacTriangular(uint8_t channel, uint32_t frequency) {
 		/* Configure triangular wave with given frequency */
 		dac[channel]->triangular(frequency);
 		/* Stop DAC timer */
-		dac[channel]->getTimer()->stop();
+		dac[channel]->getEvent()->stop();
 	}
 	/* Send only one byte */
 	uint8_t b = 1;
@@ -496,13 +496,13 @@ void EDU_LPC::cmdDacWave(uint8_t channel, bool enable) {
 		/* Check if user wants to enable the wave output */
 		if(enable) {
 			/* Reset DAC timer counter */
-			dac[channel]->getTimer()->reset();
+			dac[channel]->getEvent()->reset();
 			/* Start DAC timer counter */
-			dac[channel]->getTimer()->start();
+			dac[channel]->getEvent()->start();
 		}
 		else {
 			/* Stop DAC timer counter */
-			dac[channel]->getTimer()->stop();
+			dac[channel]->getEvent()->stop();
 		}
 	}
 	/* Send only one byte */
