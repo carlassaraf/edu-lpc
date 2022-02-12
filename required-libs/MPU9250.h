@@ -247,11 +247,11 @@ class MPU9250 {
 
 	public:
 		/* Device address when ADO = 0 */
-		static constexpr uint8_t MPU9250_DEFAULT_ADDRESS {0x68};
+		static constexpr uint8_t DefaultAddress {0x68};
 		/* Device address when ADO = 1 */
-		static constexpr uint8_t MPU9250_ALTERNATIVE_ADDRESS {0x69};
+		static constexpr uint8_t AlternativeAddress {0x69};
 		/* Class constructor */
-		MPU9250(uint8_t address = MPU9250_DEFAULT_ADDRESS,
+		MPU9250(uint8_t address = DefaultAddress,
 				uint32_t i2cn = 1,
 				uint32_t frequency = 400000U,
 				const MPU9250Setting mpu_setting = MPU9250Setting());
@@ -289,7 +289,7 @@ class MPU9250 {
 		static constexpr uint8_t AK8963_ADDRESS {0x0C};
 		static constexpr uint8_t AK8963_WHOAMI_DEFAULT_VALUE {0x48};
 		/* MPU address */
-		uint8_t mpu_i2c_addr {MPU9250_DEFAULT_ADDRESS};
+		uint8_t mpu_i2c_addr {DefaultAddress};
 		/* MPU connected flag*/
 		bool has_connected {false};
 		/* MPU settings */
