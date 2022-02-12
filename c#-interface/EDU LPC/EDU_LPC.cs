@@ -37,7 +37,8 @@ namespace EDU_LPC
             dac_triangular = 0x0b,      /* DAC configure triangular wave */
             dac_wave = 0x0c,            /* DAC enable or disable wave output */
             pwm_config = 0x0d,          /* PWM configure signal */
-            bmp_read = 0x0e				/* BMP180 read values and send */
+            bmp_read = 0x0e,			/* BMP180 read values and send */
+            mpu_read = 0x0f             /* MPU9250 read values and send */
         };
         /// <summary>
         /// EDU LPC GPIO configuration
@@ -54,6 +55,8 @@ namespace EDU_LPC
         static SerialPort serialPort;
         /* Delegate to update labels */
         delegate void setLblText(string text, Label obj);
+        /* Delegate to update buttons */
+        delegate void setBtnText(string text, Button obj);
 
         /// <summary>
         /// Constructor
@@ -143,7 +146,7 @@ namespace EDU_LPC
             gpioCmdHandler((byte)EDU_LPC_CMD.gpio_toggle);
             /* Update value label */
             if (gpioValueLbl.Text.Equals("HIGH")) { gpioValueLbl.Text = "LOW"; }
-            if (gpioValueLbl.Text.Equals("LOW")) { gpioValueLbl.Text = "HIGH"; }
+            else if (gpioValueLbl.Text.Equals("LOW")) { gpioValueLbl.Text = "HIGH"; }
         }
 
         /// <summary>
@@ -416,7 +419,7 @@ namespace EDU_LPC
             /* Check that there is a GPIO selected */
             if (gpioCmbox.SelectedIndex < 0)
             {
-                MessageBox.Show("Select a GPIO first!");
+                MessageBox.Show("Elija un GPIO primero!");
                 return;
             }
             /* Get the GPIO index */
@@ -498,10 +501,12 @@ namespace EDU_LPC
             auxBuff.Add(Convert.ToByte(checksum));
             /* Convert list to array */
             byte[] buff = auxBuff.ToArray();
-            /* Wait for one byte to trigger event */
-            serialPort.ReceivedBytesThreshold = 1;
             /* Set flag to recognize the first byte */
             first_byte = true;
+            /* Clear buffer */
+            serialPort.DiscardInBuffer();
+            /* Wait for one byte to trigger event */
+            serialPort.ReceivedBytesThreshold = 1;
             /* Send data through serial port */
             serialPort.Write(buff, 0, buff.Length);
         }
@@ -536,72 +541,159 @@ namespace EDU_LPC
         {
             /* Create array to hold the incomming data */
             byte[] buff = new byte[serialPort.ReceivedBytesThreshold];
-            /* Read all the bytes received */
-            serialPort.Read(buff, 0, serialPort.ReceivedBytesThreshold);
-            /* Check if it is the size byte */
-            if (first_byte)
+            try
             {
-                /* Clear flag */
-                first_byte = false;
-                /* Set the number of bytes to be waited */
-                serialPort.ReceivedBytesThreshold = buff[0];
-            }
-            /* If size byte was already received */
-            else
-            {
-                /* Auxiliary vairbles */
-                byte high, low;
-                byte presHigh, presMid, presLow;
-                float aux;
-                /* Check what command it is */
-                switch ((EDU_LPC_CMD)buff[0])
+                /* Read all the bytes received */
+                serialPort.Read(buff, 0, serialPort.ReceivedBytesThreshold);
+                /* Check if it is the size byte */
+                if (first_byte)
                 {
-                    /* GPIO read command */
-                    case EDU_LPC_CMD.gpio_read:
-                        /* Get the GPIO value as a string */
-                        string val = (buff[1] == 1) ? "High" : "Low";
-                        /* Call delegate to update label */
-                        update(val, gpioValueLbl);
-                        break;
-                    /* GPIO ADC read command */
-                    case EDU_LPC_CMD.adc_read:
-                        /* Get the high and low values */
-                        high = buff[1];
-                        low = buff[2];
-                        /* Build the 12-bit ADC value */
-                        int adc = high * 0xff + low;
-                        /* Call delagate to update label */
-                        update(adc.ToString(), adcValueLbl);
-                        break;
-                    /* LM35 Celsius and Fahrenheit commands */
-                    case EDU_LPC_CMD.lm35_c:
-                    case EDU_LPC_CMD.lm35_f:
-                        /* Get the integer and decimal temperature values */
-                        high = buff[1];
-                        low = buff[2];
-                        /* Build temperature */
-                        aux = high + ((float)low) / 100;
-                        /* Call delegate to update label */
-                        update(aux.ToString(), lm35ValueLbl);
-                        break;
-                    /* BMP180 read command */
-                    case EDU_LPC_CMD.bmp_read:
-                        /* Get the high, mid and low pressure values */
-                        presHigh = buff[1];
-                        presMid = buff[2];
-                        presLow = buff[3];
-                        /* Get the integer and decimal temperature values */
-                        high = buff[4];
-                        low = buff[5];
-                        /* Build the pressure value */
-                        Int32 pres = (presHigh * 0xffff) + (presMid * 0xff) + presLow;
-                        /* Build the temperature value */
-                        aux = high + ((float)low) / 100;
-                        /* Call delegate to update both labels */
-                        update(Convert.ToString(pres) + " Pa", bmpPres);
-                        update(Convert.ToString(aux) + " °C", bmpTemp);
-                        break;
+                    /* Clear flag */
+                    first_byte = false;
+                    /* Set the number of bytes to be waited */
+                    serialPort.ReceivedBytesThreshold = buff[0];
                 }
+                /* If size byte was already received */
+                else
+                {
+                    /* Check what command it is */
+                    switch ((EDU_LPC_CMD)buff[0])
+                    {
+                        /* GPIO read command */
+                        case EDU_LPC_CMD.gpio_read:
+                            gpioReadCmd(buff);
+                            break;
+                        /* GPIO ADC read command */
+                        case EDU_LPC_CMD.adc_read:
+                            adcReadCmd(buff);
+                            break;
+                        /* LM35 Celsius and Fahrenheit commands */
+                        case EDU_LPC_CMD.lm35_c:
+                        case EDU_LPC_CMD.lm35_f:
+                            lmReadCmd(buff);
+                            break;
+                        /* BMP180 read command */
+                        case EDU_LPC_CMD.bmp_read:
+                            bmpReadCmd(buff);
+                            break;
+                        /* MPU9250 read command */
+                        case EDU_LPC_CMD.mpu_read:
+                            mpuReadCmd(buff);
+                            break;
+                    }
+                }
+            }
+            catch (System.IO.IOException)
+            {
+                MessageBox.Show("Hubo un error en la comunicacion. Conecte el puerto y vuelva a intentar.");
+                serialPort.Close();
+                update("Conectar", comConnect);
+            }
+            
+        }
+
+        /// <summary>
+        /// Handles the GPIO read command
+        /// </summary>
+        /// <param name="buff">
+        /// Array with the data
+        /// </param>
+        private void gpioReadCmd(byte[] buff)
+        {
+            /* Get the GPIO value as a string */
+            string val = (buff[1] == 1) ? "HIGH" : "LOW";
+            /* Call delegate to update label */
+            update(val, gpioValueLbl);
+        }
+
+        /// <summary>
+        /// Handles the ADC read command
+        /// </summary>
+        /// <param name="buff">
+        /// Array with the data
+        /// </param>
+        private void adcReadCmd(byte[] buff)
+        {
+            /* Get the high and low values */
+            byte high = buff[1];
+            byte low = buff[2];
+            /* Build the 12-bit ADC value */
+            int adc = high * 0xff + low;
+            /* Call delagate to update label */
+            update(adc.ToString(), adcValueLbl);
+        }
+
+        /// <summary>
+        /// Handles the LM35 read command
+        /// </summary>
+        /// <param name="buff">
+        /// Array with the data
+        /// </param>
+        private void lmReadCmd(byte[] buff)
+        {
+            /* Get the integer and decimal temperature values */
+            byte high = buff[1];
+            byte low = buff[2];
+            /* Build temperature */
+            float temp = high + ((float)low) / 100;
+            /* Call delegate to update label */
+            update(temp.ToString(), lm35ValueLbl);
+        }
+
+        /// <summary>
+        /// Handles the BMP180 read command
+        /// </summary>
+        /// <param name="buff">
+        /// Array with the data
+        /// </param>
+        private void bmpReadCmd(byte[] buff)
+        {
+            /* Get the high, mid and low pressure values */
+            byte presHigh = buff[1];
+            byte presMid = buff[2];
+            byte presLow = buff[3];
+            /* Get the integer and decimal temperature values */
+            byte high = buff[4];
+            byte low = buff[5];
+            /* Build the pressure value */
+            Int32 pres = (presHigh * 0xffff) + (presMid * 0xff) + presLow;
+            /* Build the temperature value */
+            float temp = high + ((float)low) / 100;
+            /* Call delegate to update both labels */
+            update(Convert.ToString(pres) + " Pa", bmpPres);
+            update(Convert.ToString(temp) + " °C", bmpTemp);
+        }
+
+        /// <summary>
+        /// Handles the MPU9250 read command
+        /// </summary>
+        /// <param name="buff">
+        /// Array with the data
+        /// </param>
+        private void mpuReadCmd(byte[] buff)
+        {
+            /* Variable to store the float values */
+            float val;
+            /* Array with the labels to write */
+            Label[] lbls = {
+                accxValueLbl, accyValueLbl, acczValueLbl,
+                gyxValueLbl, gyyValueLbl, gyzValueLbl,
+                mgxValueLbl, mgyValueLbl, mgzValueLbl,
+                mputTempValueLbl
+            };
+            /* Extra counter */
+            int j = 1;
+            for (int i = 0; i < 10; i++)
+            {
+                /* Clear variable */
+                val = 0;
+                /* Get the high value */
+                val += (int)buff[i + j];
+                /* Get the decimals */
+                val += ((float)buff[i + j + 1]) / 100;
+                /* Increment extra counter */
+                j++;
+                update(val.ToString(), lbls[i]);
             }
         }
 
@@ -626,6 +718,21 @@ namespace EDU_LPC
             }
             /* When the object is in the same thread, update the text */
             else { obj.Text = text; }
+        }
+
+        private void update(string text, Button obj)
+        {
+            /* Check if an invoke is required fofr the object */
+            if (obj.InvokeRequired)
+            {
+                /* Create a delegate */
+                setBtnText d = new setBtnText(update);
+                /* Invoke the method */
+                this.Invoke(d, new object[] { text, obj });
+            }
+            /* When the object is in the same thread, update the text */
+            else { obj.Text = text; }
+
         }
 
         /// <summary>
@@ -743,6 +850,21 @@ namespace EDU_LPC
             dacSine.Checked = false;
             dacTriangular.Checked = false;
             dacOn.Checked = false;
+        }
+
+        /// <summary>
+        /// Send a MPU9250 read command
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void mpuRead_Click(object sender, EventArgs e)
+        {
+            /* Build data buffer */
+            byte[] buff = {
+                (byte)EDU_LPC_CMD.mpu_read  /* Command */
+            };
+            /* Send data */
+            sendSerialData(buff);
         }
     }
 }

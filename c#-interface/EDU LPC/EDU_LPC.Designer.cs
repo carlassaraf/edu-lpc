@@ -46,6 +46,7 @@ namespace EDU_LPC
             this.adcCmbox = new System.Windows.Forms.ComboBox();
             this.adcLabel = new System.Windows.Forms.Label();
             this.dacPanel = new System.Windows.Forms.Panel();
+            this.dacChannels = new System.Windows.Forms.ComboBox();
             this.dacTriangular = new System.Windows.Forms.RadioButton();
             this.dacSine = new System.Windows.Forms.RadioButton();
             this.dacOn = new System.Windows.Forms.CheckBox();
@@ -72,12 +73,29 @@ namespace EDU_LPC
             this.pwmCmbox = new System.Windows.Forms.ComboBox();
             this.pwmLabel = new System.Windows.Forms.Label();
             this.i2cPanel = new System.Windows.Forms.Panel();
+            this.bmpTempLabel = new System.Windows.Forms.Label();
             this.bmpRead = new System.Windows.Forms.Button();
             this.bmpTemp = new System.Windows.Forms.Label();
             this.bmpPres = new System.Windows.Forms.Label();
-            this.bmpLabel = new System.Windows.Forms.Label();
-            this.i2cLabel = new System.Windows.Forms.Label();
-            this.dacChannels = new System.Windows.Forms.ComboBox();
+            this.bmpPresLabel = new System.Windows.Forms.Label();
+            this.bmp180Label = new System.Windows.Forms.Label();
+            this.mpuPanel = new System.Windows.Forms.Panel();
+            this.gyzValueLbl = new System.Windows.Forms.Label();
+            this.gyyValueLbl = new System.Windows.Forms.Label();
+            this.gyxValueLbl = new System.Windows.Forms.Label();
+            this.acczValueLbl = new System.Windows.Forms.Label();
+            this.accyValueLbl = new System.Windows.Forms.Label();
+            this.accxValueLbl = new System.Windows.Forms.Label();
+            this.mpuMagLabel = new System.Windows.Forms.Label();
+            this.mpuGyroLabel = new System.Windows.Forms.Label();
+            this.mpuAccelLabel = new System.Windows.Forms.Label();
+            this.mpuRead = new System.Windows.Forms.Button();
+            this.mpuLabel = new System.Windows.Forms.Label();
+            this.mgzValueLbl = new System.Windows.Forms.Label();
+            this.mgyValueLbl = new System.Windows.Forms.Label();
+            this.mgxValueLbl = new System.Windows.Forms.Label();
+            this.mpuTempLabel = new System.Windows.Forms.Label();
+            this.mputTempValueLbl = new System.Windows.Forms.Label();
             this.gpioPanel.SuspendLayout();
             this.adcPanel.SuspendLayout();
             this.dacPanel.SuspendLayout();
@@ -85,6 +103,7 @@ namespace EDU_LPC
             this.configPanel.SuspendLayout();
             this.pwmPanel.SuspendLayout();
             this.i2cPanel.SuspendLayout();
+            this.mpuPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // gpioPanel
@@ -99,7 +118,7 @@ namespace EDU_LPC
             this.gpioPanel.Controls.Add(this.gpioCmbox);
             this.gpioPanel.Location = new System.Drawing.Point(23, 209);
             this.gpioPanel.Name = "gpioPanel";
-            this.gpioPanel.Size = new System.Drawing.Size(166, 96);
+            this.gpioPanel.Size = new System.Drawing.Size(166, 109);
             this.gpioPanel.TabIndex = 0;
             // 
             // gpioToggle
@@ -268,8 +287,18 @@ namespace EDU_LPC
             this.dacPanel.Controls.Add(this.dacLbl);
             this.dacPanel.Location = new System.Drawing.Point(204, 148);
             this.dacPanel.Name = "dacPanel";
-            this.dacPanel.Size = new System.Drawing.Size(166, 157);
+            this.dacPanel.Size = new System.Drawing.Size(166, 170);
             this.dacPanel.TabIndex = 2;
+            // 
+            // dacChannels
+            // 
+            this.dacChannels.FormattingEnabled = true;
+            this.dacChannels.Location = new System.Drawing.Point(13, 40);
+            this.dacChannels.Name = "dacChannels";
+            this.dacChannels.Size = new System.Drawing.Size(56, 21);
+            this.dacChannels.TabIndex = 7;
+            this.dacChannels.Text = "DACn";
+            this.dacChannels.SelectedIndexChanged += new System.EventHandler(this.dacChannels_SelectedIndexChanged);
             // 
             // dacTriangular
             // 
@@ -528,19 +557,30 @@ namespace EDU_LPC
             // i2cPanel
             // 
             this.i2cPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.i2cPanel.Controls.Add(this.bmpTempLabel);
             this.i2cPanel.Controls.Add(this.bmpRead);
             this.i2cPanel.Controls.Add(this.bmpTemp);
             this.i2cPanel.Controls.Add(this.bmpPres);
-            this.i2cPanel.Controls.Add(this.bmpLabel);
-            this.i2cPanel.Controls.Add(this.i2cLabel);
+            this.i2cPanel.Controls.Add(this.bmpPresLabel);
+            this.i2cPanel.Controls.Add(this.bmp180Label);
             this.i2cPanel.Location = new System.Drawing.Point(387, 167);
             this.i2cPanel.Name = "i2cPanel";
-            this.i2cPanel.Size = new System.Drawing.Size(166, 138);
+            this.i2cPanel.Size = new System.Drawing.Size(166, 151);
             this.i2cPanel.TabIndex = 6;
+            // 
+            // bmpTempLabel
+            // 
+            this.bmpTempLabel.AutoSize = true;
+            this.bmpTempLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.bmpTempLabel.Location = new System.Drawing.Point(14, 67);
+            this.bmpTempLabel.Name = "bmpTempLabel";
+            this.bmpTempLabel.Size = new System.Drawing.Size(67, 13);
+            this.bmpTempLabel.TabIndex = 11;
+            this.bmpTempLabel.Text = "Temperatura";
             // 
             // bmpRead
             // 
-            this.bmpRead.Location = new System.Drawing.Point(39, 84);
+            this.bmpRead.Location = new System.Drawing.Point(46, 104);
             this.bmpRead.Name = "bmpRead";
             this.bmpRead.Size = new System.Drawing.Size(75, 32);
             this.bmpRead.TabIndex = 10;
@@ -552,7 +592,7 @@ namespace EDU_LPC
             // 
             this.bmpTemp.AutoSize = true;
             this.bmpTemp.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.bmpTemp.Location = new System.Drawing.Point(68, 58);
+            this.bmpTemp.Location = new System.Drawing.Point(80, 68);
             this.bmpTemp.Name = "bmpTemp";
             this.bmpTemp.Size = new System.Drawing.Size(70, 13);
             this.bmpTemp.TabIndex = 9;
@@ -562,48 +602,223 @@ namespace EDU_LPC
             // 
             this.bmpPres.AutoSize = true;
             this.bmpPres.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.bmpPres.Location = new System.Drawing.Point(68, 41);
+            this.bmpPres.Location = new System.Drawing.Point(80, 41);
             this.bmpPres.Name = "bmpPres";
             this.bmpPres.Size = new System.Drawing.Size(70, 13);
             this.bmpPres.TabIndex = 8;
             this.bmpPres.Text = "UNDEFINED";
             // 
-            // bmpLabel
+            // bmpPresLabel
             // 
-            this.bmpLabel.AutoSize = true;
-            this.bmpLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.bmpLabel.Location = new System.Drawing.Point(14, 41);
-            this.bmpLabel.Name = "bmpLabel";
-            this.bmpLabel.Size = new System.Drawing.Size(48, 13);
-            this.bmpLabel.TabIndex = 7;
-            this.bmpLabel.Text = "BMP180";
+            this.bmpPresLabel.AutoSize = true;
+            this.bmpPresLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.bmpPresLabel.Location = new System.Drawing.Point(14, 41);
+            this.bmpPresLabel.Name = "bmpPresLabel";
+            this.bmpPresLabel.Size = new System.Drawing.Size(42, 13);
+            this.bmpPresLabel.TabIndex = 7;
+            this.bmpPresLabel.Text = "Presion";
             // 
-            // i2cLabel
+            // bmp180Label
             // 
-            this.i2cLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
-            this.i2cLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.i2cLabel.Location = new System.Drawing.Point(13, 8);
-            this.i2cLabel.Name = "i2cLabel";
-            this.i2cLabel.Size = new System.Drawing.Size(60, 20);
-            this.i2cLabel.TabIndex = 7;
-            this.i2cLabel.Text = "I2C";
+            this.bmp180Label.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
+            this.bmp180Label.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.bmp180Label.Location = new System.Drawing.Point(13, 8);
+            this.bmp180Label.Name = "bmp180Label";
+            this.bmp180Label.Size = new System.Drawing.Size(78, 20);
+            this.bmp180Label.TabIndex = 7;
+            this.bmp180Label.Text = "BMP180";
             // 
-            // dacChannels
+            // mpuPanel
             // 
-            this.dacChannels.FormattingEnabled = true;
-            this.dacChannels.Location = new System.Drawing.Point(13, 40);
-            this.dacChannels.Name = "dacChannels";
-            this.dacChannels.Size = new System.Drawing.Size(56, 21);
-            this.dacChannels.TabIndex = 7;
-            this.dacChannels.Text = "DACn";
-            this.dacChannels.SelectedIndexChanged += new System.EventHandler(this.dacChannels_SelectedIndexChanged);
+            this.mpuPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.mpuPanel.Controls.Add(this.mputTempValueLbl);
+            this.mpuPanel.Controls.Add(this.mpuTempLabel);
+            this.mpuPanel.Controls.Add(this.mgzValueLbl);
+            this.mpuPanel.Controls.Add(this.mgyValueLbl);
+            this.mpuPanel.Controls.Add(this.mgxValueLbl);
+            this.mpuPanel.Controls.Add(this.gyzValueLbl);
+            this.mpuPanel.Controls.Add(this.gyyValueLbl);
+            this.mpuPanel.Controls.Add(this.gyxValueLbl);
+            this.mpuPanel.Controls.Add(this.acczValueLbl);
+            this.mpuPanel.Controls.Add(this.accyValueLbl);
+            this.mpuPanel.Controls.Add(this.accxValueLbl);
+            this.mpuPanel.Controls.Add(this.mpuMagLabel);
+            this.mpuPanel.Controls.Add(this.mpuGyroLabel);
+            this.mpuPanel.Controls.Add(this.mpuAccelLabel);
+            this.mpuPanel.Controls.Add(this.mpuRead);
+            this.mpuPanel.Controls.Add(this.mpuLabel);
+            this.mpuPanel.Location = new System.Drawing.Point(568, 21);
+            this.mpuPanel.Name = "mpuPanel";
+            this.mpuPanel.Size = new System.Drawing.Size(144, 297);
+            this.mpuPanel.TabIndex = 7;
+            // 
+            // gyzValueLbl
+            // 
+            this.gyzValueLbl.AutoSize = true;
+            this.gyzValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.gyzValueLbl.Location = new System.Drawing.Point(40, 134);
+            this.gyzValueLbl.Name = "gyzValueLbl";
+            this.gyzValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.gyzValueLbl.TabIndex = 20;
+            this.gyzValueLbl.Text = "UNDEFINED";
+            // 
+            // gyyValueLbl
+            // 
+            this.gyyValueLbl.AutoSize = true;
+            this.gyyValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.gyyValueLbl.Location = new System.Drawing.Point(40, 121);
+            this.gyyValueLbl.Name = "gyyValueLbl";
+            this.gyyValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.gyyValueLbl.TabIndex = 19;
+            this.gyyValueLbl.Text = "UNDEFINED";
+            // 
+            // gyxValueLbl
+            // 
+            this.gyxValueLbl.AutoSize = true;
+            this.gyxValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.gyxValueLbl.Location = new System.Drawing.Point(40, 108);
+            this.gyxValueLbl.Name = "gyxValueLbl";
+            this.gyxValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.gyxValueLbl.TabIndex = 18;
+            this.gyxValueLbl.Text = "UNDEFINED";
+            // 
+            // acczValueLbl
+            // 
+            this.acczValueLbl.AutoSize = true;
+            this.acczValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.acczValueLbl.Location = new System.Drawing.Point(40, 75);
+            this.acczValueLbl.Name = "acczValueLbl";
+            this.acczValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.acczValueLbl.TabIndex = 17;
+            this.acczValueLbl.Text = "UNDEFINED";
+            // 
+            // accyValueLbl
+            // 
+            this.accyValueLbl.AutoSize = true;
+            this.accyValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.accyValueLbl.Location = new System.Drawing.Point(40, 62);
+            this.accyValueLbl.Name = "accyValueLbl";
+            this.accyValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.accyValueLbl.TabIndex = 16;
+            this.accyValueLbl.Text = "UNDEFINED";
+            // 
+            // accxValueLbl
+            // 
+            this.accxValueLbl.AutoSize = true;
+            this.accxValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.accxValueLbl.Location = new System.Drawing.Point(40, 49);
+            this.accxValueLbl.Name = "accxValueLbl";
+            this.accxValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.accxValueLbl.TabIndex = 15;
+            this.accxValueLbl.Text = "UNDEFINED";
+            // 
+            // mpuMagLabel
+            // 
+            this.mpuMagLabel.AutoSize = true;
+            this.mpuMagLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.mpuMagLabel.Location = new System.Drawing.Point(16, 154);
+            this.mpuMagLabel.Name = "mpuMagLabel";
+            this.mpuMagLabel.Size = new System.Drawing.Size(75, 13);
+            this.mpuMagLabel.TabIndex = 14;
+            this.mpuMagLabel.Text = "Magnetometro";
+            // 
+            // mpuGyroLabel
+            // 
+            this.mpuGyroLabel.AutoSize = true;
+            this.mpuGyroLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.mpuGyroLabel.Location = new System.Drawing.Point(16, 93);
+            this.mpuGyroLabel.Name = "mpuGyroLabel";
+            this.mpuGyroLabel.Size = new System.Drawing.Size(58, 13);
+            this.mpuGyroLabel.TabIndex = 13;
+            this.mpuGyroLabel.Text = "Gyroscopo";
+            // 
+            // mpuAccelLabel
+            // 
+            this.mpuAccelLabel.AutoSize = true;
+            this.mpuAccelLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.mpuAccelLabel.Location = new System.Drawing.Point(16, 36);
+            this.mpuAccelLabel.Name = "mpuAccelLabel";
+            this.mpuAccelLabel.Size = new System.Drawing.Size(69, 13);
+            this.mpuAccelLabel.TabIndex = 12;
+            this.mpuAccelLabel.Text = "Acelerometro";
+            // 
+            // mpuRead
+            // 
+            this.mpuRead.Location = new System.Drawing.Point(34, 250);
+            this.mpuRead.Name = "mpuRead";
+            this.mpuRead.Size = new System.Drawing.Size(75, 32);
+            this.mpuRead.TabIndex = 11;
+            this.mpuRead.Text = "Read";
+            this.mpuRead.UseVisualStyleBackColor = true;
+            this.mpuRead.Click += new System.EventHandler(this.mpuRead_Click);
+            // 
+            // mpuLabel
+            // 
+            this.mpuLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
+            this.mpuLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.mpuLabel.Location = new System.Drawing.Point(15, 10);
+            this.mpuLabel.Name = "mpuLabel";
+            this.mpuLabel.Size = new System.Drawing.Size(94, 20);
+            this.mpuLabel.TabIndex = 8;
+            this.mpuLabel.Text = "MPU9250";
+            // 
+            // mgzValueLbl
+            // 
+            this.mgzValueLbl.AutoSize = true;
+            this.mgzValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.mgzValueLbl.Location = new System.Drawing.Point(40, 196);
+            this.mgzValueLbl.Name = "mgzValueLbl";
+            this.mgzValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.mgzValueLbl.TabIndex = 23;
+            this.mgzValueLbl.Text = "UNDEFINED";
+            // 
+            // mgyValueLbl
+            // 
+            this.mgyValueLbl.AutoSize = true;
+            this.mgyValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.mgyValueLbl.Location = new System.Drawing.Point(40, 183);
+            this.mgyValueLbl.Name = "mgyValueLbl";
+            this.mgyValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.mgyValueLbl.TabIndex = 22;
+            this.mgyValueLbl.Text = "UNDEFINED";
+            // 
+            // mgxValueLbl
+            // 
+            this.mgxValueLbl.AutoSize = true;
+            this.mgxValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.mgxValueLbl.Location = new System.Drawing.Point(40, 170);
+            this.mgxValueLbl.Name = "mgxValueLbl";
+            this.mgxValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.mgxValueLbl.TabIndex = 21;
+            this.mgxValueLbl.Text = "UNDEFINED";
+            // 
+            // mpuTempLabel
+            // 
+            this.mpuTempLabel.AutoSize = true;
+            this.mpuTempLabel.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.mpuTempLabel.Location = new System.Drawing.Point(16, 214);
+            this.mpuTempLabel.Name = "mpuTempLabel";
+            this.mpuTempLabel.Size = new System.Drawing.Size(67, 13);
+            this.mpuTempLabel.TabIndex = 24;
+            this.mpuTempLabel.Text = "Temperatura";
+            // 
+            // mputTempValueLbl
+            // 
+            this.mputTempValueLbl.AutoSize = true;
+            this.mputTempValueLbl.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.mputTempValueLbl.Location = new System.Drawing.Point(40, 227);
+            this.mputTempValueLbl.Name = "mputTempValueLbl";
+            this.mputTempValueLbl.Size = new System.Drawing.Size(70, 13);
+            this.mputTempValueLbl.TabIndex = 25;
+            this.mputTempValueLbl.Text = "UNDEFINED";
             // 
             // EDU_LPC
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Desktop;
-            this.ClientSize = new System.Drawing.Size(579, 324);
+            this.ClientSize = new System.Drawing.Size(724, 344);
+            this.Controls.Add(this.mpuPanel);
             this.Controls.Add(this.i2cPanel);
             this.Controls.Add(this.pwmPanel);
             this.Controls.Add(this.configPanel);
@@ -627,6 +842,8 @@ namespace EDU_LPC
             this.pwmPanel.PerformLayout();
             this.i2cPanel.ResumeLayout(false);
             this.i2cPanel.PerformLayout();
+            this.mpuPanel.ResumeLayout(false);
+            this.mpuPanel.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -678,9 +895,27 @@ namespace EDU_LPC
         private System.Windows.Forms.Button bmpRead;
         private System.Windows.Forms.Label bmpTemp;
         private System.Windows.Forms.Label bmpPres;
-        private System.Windows.Forms.Label bmpLabel;
-        private System.Windows.Forms.Label i2cLabel;
+        private System.Windows.Forms.Label bmpPresLabel;
+        private System.Windows.Forms.Label bmp180Label;
         private System.Windows.Forms.ComboBox dacChannels;
+        private System.Windows.Forms.Label bmpTempLabel;
+        private System.Windows.Forms.Panel mpuPanel;
+        private System.Windows.Forms.Label gyzValueLbl;
+        private System.Windows.Forms.Label gyyValueLbl;
+        private System.Windows.Forms.Label gyxValueLbl;
+        private System.Windows.Forms.Label acczValueLbl;
+        private System.Windows.Forms.Label accyValueLbl;
+        private System.Windows.Forms.Label accxValueLbl;
+        private System.Windows.Forms.Label mpuMagLabel;
+        private System.Windows.Forms.Label mpuGyroLabel;
+        private System.Windows.Forms.Label mpuAccelLabel;
+        private System.Windows.Forms.Button mpuRead;
+        private System.Windows.Forms.Label mpuLabel;
+        private System.Windows.Forms.Label mputTempValueLbl;
+        private System.Windows.Forms.Label mpuTempLabel;
+        private System.Windows.Forms.Label mgzValueLbl;
+        private System.Windows.Forms.Label mgyValueLbl;
+        private System.Windows.Forms.Label mgxValueLbl;
     }
 }
 
