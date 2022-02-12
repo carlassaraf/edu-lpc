@@ -131,8 +131,8 @@ class EDU_LPC {
 	private:
 		/* Module instances */
 		LM35 *lm { new LM35 };
-		BMP180 *bmp { new BMP180 };
-		MPU9250 *mpu { new MPU9250 };
+		BMP180 *bmp = { nullptr };
+		MPU9250 *mpu = { nullptr };
 		/* Board RGB LED */
 		Pin *rgb[3] = { new Pin(32, Pin::OUTPUT, 1), new Pin(33, Pin::OUTPUT, 1), new Pin(34, Pin::OUTPUT, 1) };
 		/* Button array */
