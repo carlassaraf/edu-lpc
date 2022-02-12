@@ -246,6 +246,10 @@ typedef struct {
 class MPU9250 {
 
 	public:
+		/* Device address when ADO = 0 */
+		static constexpr uint8_t MPU9250_DEFAULT_ADDRESS {0x68};
+		/* Device address when ADO = 1 */
+		static constexpr uint8_t MPU9250_ALTERNATIVE_ADDRESS {0x69};
 		/* Class constructor */
 		MPU9250(uint8_t address = MPU9250_DEFAULT_ADDRESS,
 				uint32_t i2cn = 1,
@@ -281,8 +285,6 @@ class MPU9250 {
 		static constexpr uint16_t CALIB_GYRO_SENSITIVITY {131};
 		/* LSB/g */
 		static constexpr uint16_t CALIB_ACCEL_SENSITIVITY {16384};
-		/* Device address when ADO = 0 */
-		static constexpr uint8_t MPU9250_DEFAULT_ADDRESS {0x68};
 		/* Address of magnetometer */
 		static constexpr uint8_t AK8963_ADDRESS {0x0C};
 		static constexpr uint8_t AK8963_WHOAMI_DEFAULT_VALUE {0x48};
